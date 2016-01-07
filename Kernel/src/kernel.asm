@@ -3,13 +3,14 @@
 ;Roy Procell
 ;7/13/2015
 ;
-;The main kernel file of GoldOS!
-;Partaaaaaay!
+;The main kernel file of GoldOS
 
 setup:
+	;sets up interrupts
 	%include 'C:\users\roy\desktop\GoldOS\setup.asm'
 
 main:
+	;draws main screen
 	%include 'C:\users\roy\desktop\GoldOS\main.asm'
 	
 %include 'C:\users\roy\desktop\GoldOS\video.asm'
@@ -22,6 +23,7 @@ main:
 ;%include 'C:\users\roy\desktop\GoldOS\math.asm'
 %include 'C:\users\roy\desktop\GoldOS\misc.asm'
 %include 'C:\users\roy\desktop\GoldOS\int.asm'
+
 system_messages:
 	os_welcome db "Welcome to GoldOS!", 0
 	os_help db "Use the arrow keys to", 0
@@ -31,9 +33,6 @@ system_messages:
 	os_desc_2 db "Description:", 0
 	os_confirm db "Are you sure?", 0
 	os_warning db "Warning!", 0
-	os_unsigned_program db "This is an unverified", 0
-	os_unsigned_program_2 db "program! It could be", 0
-	os_unsigned_program_3 db "malicious! Continue?", 0
 	os_error db "Error!", 0
 	os_file_not_found db "File not found!", 0
 	os_file_not_found_2 db "Press any key.", 0
@@ -57,6 +56,7 @@ system_variables:
 	os_disk_num db 0
 	
 system_icons:
+	;used as storage for app icons
 	%include 'C:\users\roy\desktop\GoldOS\icons.asm'
 
 db 'STACK'

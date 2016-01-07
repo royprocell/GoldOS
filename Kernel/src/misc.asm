@@ -20,11 +20,22 @@ os_wait:
 	popa
 	ret
 
-;some testing functions for compatibility
+;==================
+;os_clear_blinking_bit_bl
+;Makes sure text isn't blinking on older computers
+;IN: Nothing
+;OUT: Nothing
+;==================
 os_clear_blinking_bit_bl:
 	btr ebx, 7
 	ret
 	
+;==================
+;os_clear_blinking_bit_bh
+;Makes sure text isn't blinking on older computers
+;IN: Nothing
+;OUT: Nothing
+;==================
 os_clear_blinking_bit_bh:
 	btr ebx, 13
 	ret

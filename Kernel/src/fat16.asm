@@ -530,18 +530,7 @@ fat_file_exec:
 	call fat_file_read
 	jc .error
 	
-	jmp .signed
-	;disabling the verification process for now, seems unnecessary
-	
-	mov ax, 3000h
-	mov ds, ax
-	mov si, 0
-	add si, 3
-	mov eax, dword [ds:si]
-	cmp eax, 0x601DE1F1
-	jne .unsigned
-	
-.signed:
+.prepare_jump:
 	mov bl, 43
 	call os_clear_screen_gfx
 	mov al, 3
@@ -563,53 +552,6 @@ fat_file_exec:
 	mov di, 0
 	clc
 	call 3000h:0000h
-	clc
-	ret
-	
-.unsigned:
-	mov dh, 17
-	mov dl, 0
-	call os_move_cursor
-	mov bl, 28h
-	mov ax, 2000h
-	mov ds, ax
-	mov si, os_warning
-	call os_print_string
-	mov bl, 43
-	mov dh, 18
-	mov dl, 0
-	call os_move_cursor
-	mov si, os_unsigned_program
-	call os_print_string
-	mov dh, 19
-	mov dl, 0
-	call os_move_cursor
-	mov si, os_unsigned_program_2
-	call os_print_string
-	mov dh, 20
-	mov dl, 0
-	call os_move_cursor
-	mov si, os_unsigned_program_3
-	call os_print_string
-	
-	mov dh, 22
-	mov dl, 0
-	call os_move_cursor
-	mov bl, 2
-	mov al, 'Y'
-	call os_print_char
-	mov bl, 43
-	mov al, '/'
-	call os_print_char
-	mov bl, 28h
-	mov al, 'N'
-	call os_print_char
-	
-	call os_wait_for_key
-	cmp al, 79h
-	je .signed
-	cmp al, 59h
-	je .signed
 	clc
 	ret
 	
