@@ -259,34 +259,18 @@ intF5h_enter:
 intF6h_enter:
 	iret
 	
-;
+;Extra interrupt 1
 intF7h_enter:
 	iret
 	
-;
-intF8h_enter:
-	iret
-	
-;
-intF9h_enter:
-	iret
-
-;
-intFAh_enter:
-	iret
-
-;
-intFBh_enter:
-	iret
-	
 ;Miscellaneous services
-intFCh_enter:
+intF8h_enter:
 	cmp di, 00h
 	je .00
 	cmp di, 01h
 	je .01
 	stc
-	ret
+	iret
 	
 .00:
 	iret
@@ -296,5 +280,21 @@ intFCh_enter:
 	
 ;System services
 ;Not to be called often!
+intF9h_enter:
+	iret
+
+;Unprogrammed extra interrupt 1
+intFAh_enter:
+	iret
+
+;Unprogrammed extra interrupt 2
+intFBh_enter:
+	iret
+	
+;Unprogreammed extra interrupt 3
+intFCh_enter:
+	iret
+	
+;Unprogrammed extra interrupt 4
 intFDh_enter:
 	iret

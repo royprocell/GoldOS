@@ -120,7 +120,7 @@ main:
 	mov dh, 0x64 ;delete file option (d key)
 	mov dl, 0x72 ;rename file option (r key)
 	mov si, 0x63 ;create file option (c key)
-	int 0FCh
+	int 0F8h
 	
 	cmp ah, 0
 	je open
