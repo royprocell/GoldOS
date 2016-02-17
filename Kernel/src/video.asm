@@ -129,8 +129,13 @@ os_clear_screen:
 	;if the system can only support 8 colors and blinking, os_gfx_var will be set to 1
 	;and colors will be reduced so that no unintentional blinking occurs.
 	cmp byte [os_gfx_var], 1
-	je os_clear_blinking_bit_bh
+	je .color_filter
+	jmp .interrupt
 	
+.color_filter:
+	call os_clear_blinking_bit_bh
+	
+.interrupt:
 	mov ah, 06h
 	mov ch, 0
 	mov cl, 0
@@ -153,8 +158,13 @@ os_set_background:
 	;if the system can only support 8 colors and blinking, os_gfx_var will be set to 1
 	;and colors will be reduced so that no unintentional blinking occurs.
 	cmp byte [os_gfx_var], 1
-	je os_clear_blinking_bit_bl
+	je .color_filter
+	jmp .interrupt
 	
+.color_filter:
+	call os_clear_blinking_bit_bl
+	
+.interrupt:
 	mov ah, 0Bh
 	mov bh, 0
 	int 10h
@@ -272,8 +282,13 @@ os_draw_border:
 	;if the system can only support 8 colors and blinking, os_gfx_var will be set to 1
 	;and colors will be reduced so that no unintentional blinking occurs.
 	cmp byte [os_gfx_var], 1
-	je os_clear_blinking_bit_bl
-
+	je .color_filter
+	jmp .interrupt
+	
+.color_filter:
+	call os_clear_blinking_bit_bl
+	
+.interrupt:
 	mov ah, 09h
 	mov al, ' '
 	mov bh, 0
@@ -298,8 +313,13 @@ os_draw_bar:
 	;if the system can only support 8 colors and blinking, os_gfx_var will be set to 1
 	;and colors will be reduced so that no unintentional blinking occurs.
 	cmp byte [os_gfx_var], 1
-	je os_clear_blinking_bit_bl
+	je .color_filter
+	jmp .interrupt
 	
+.color_filter:
+	call os_clear_blinking_bit_bl
+	
+.interrupt:
 	mov ah, 09h
 	mov al, ' '
 	mov bh, 0
@@ -352,7 +372,8 @@ os_draw_box:
 os_set_cursor_full:
 	pusha
 	mov cx, 0007h
-	mov ax, 1
+	call os_get_video_mode
+	mov ah, 1
 	int 10h
 	popa
 	ret
@@ -366,6 +387,7 @@ os_set_cursor_full:
 os_set_cursor_bar:
 	pusha
 	mov cx, 0607h
+	call os_get_video_mode
 	mov ax, 1
 	int 10h
 	popa

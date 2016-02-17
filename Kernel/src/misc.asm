@@ -296,7 +296,7 @@ os_list_selector:
 .tmp db 0
 .dx_tmp dw 0
 .header db 'Menu', 0
-.subtitle db 'Use the UP and DOWN arrow keys to select an option, then press desired key option', 0
+.subtitle db 'Use the UP and DOWN arrow keys to select an option, then press a key option', 0
 .title dw 0
 .option_1 db 0
 .option_2 db 0

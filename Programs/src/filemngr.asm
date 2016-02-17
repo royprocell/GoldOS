@@ -122,6 +122,7 @@ main:
 	mov si, 0x63 ;create file option (c key)
 	int 0F8h
 	
+	;if escape is pressed, exit the file manager
 	jc exit
 	
 	cmp ah, 0
@@ -132,7 +133,7 @@ main:
 	je rename
 	cmp ah, 3
 	je create
-	ret ;just in case something goes wrong
+	ret ;just in case the menu returns an invalid option
 
 open:
 	

@@ -267,6 +267,8 @@ choose_option:
 	je .left
 	cmp al, 0Dh
 	je load_file
+	cmp al, 27
+	je shutdown
 	jmp .choose_loop
 	
 .right:

@@ -1,0 +1,2 @@
+select vdisk file="C:\Users\golde\Documents\GitHub\GoldOS\Disks\GoldOS_4.vhd"
+detach vdisk
