@@ -271,8 +271,13 @@ choose_option:
 	
 .right:
 	cmp byte [os_option_counter], 7
-	je .choose_loop
+	je .right_far
 	inc byte [os_option_counter]
+	jmp choose_option
+	
+;moves the cursor to the top left option if right button is pressed at bottom right option
+.right_far:
+	mov byte [os_option_counter], 0
 	jmp choose_option
 	
 .up:
@@ -289,8 +294,13 @@ choose_option:
 	
 .left:
 	cmp byte [os_option_counter], 0
-	je .choose_loop
+	je .left_far
 	dec byte [os_option_counter]
+	jmp choose_option
+
+;moves the cursor to the bottom right option if the left button is pressed at the top left option
+.left_far:
+	mov byte [os_option_counter], 7
 	jmp choose_option
 	
 .counter db 0
@@ -318,10 +328,10 @@ load_file:
 	mov bx, os_file_file
 	;call fat_file_exec
 	mov cx, 2000h
-	mov dx, 49152
+	mov dx, 9000h;49152
 	call fat_file_read
 	jc file_not_found
-	call 2000h:0C000h
+	call 2000h:9000h
 	mov ax, 2000h
 	mov ds, ax
 	mov es, ax
@@ -419,7 +429,12 @@ file_not_found:
 	call os_print_string
 	call os_wait_for_key
 	jmp main
-	
+
+;==================
+;internal routine to shut down the computer.
+;warning: may not work on all systems.
+;tested hardware seems to either restart the computer or hang.
+;==================
 shutdown:
 	mov dh, 17
 	mov dl, 0
@@ -483,6 +498,9 @@ shutdown:
 
 	ret
 	
+;==================
+;internal routine to draw icons for the homepage stored in the kernel.
+;==================
 os_draw_icon_kernel:
 	mov byte [.counter], 16
 	mov byte [.post_counter], 15

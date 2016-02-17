@@ -125,7 +125,11 @@ os_set_cursor_invisible:
 os_clear_screen:
 	pusha
 	
-	call os_clear_blinking_bit_bh
+	;checks to see if the system can support 16 colors, or only 8 colors and blinking.
+	;if the system can only support 8 colors and blinking, os_gfx_var will be set to 1
+	;and colors will be reduced so that no unintentional blinking occurs.
+	cmp byte [os_gfx_var], 1
+	je os_clear_blinking_bit_bh
 	
 	mov ah, 06h
 	mov ch, 0
@@ -145,7 +149,11 @@ os_clear_screen:
 os_set_background:
 	pusha
 	
-	call os_clear_blinking_bit_bl
+	;checks to see if the system can support 16 colors, or only 8 colors and blinking.
+	;if the system can only support 8 colors and blinking, os_gfx_var will be set to 1
+	;and colors will be reduced so that no unintentional blinking occurs.
+	cmp byte [os_gfx_var], 1
+	je os_clear_blinking_bit_bl
 	
 	mov ah, 0Bh
 	mov bh, 0
@@ -260,8 +268,11 @@ os_draw_border:
 	mov dl, 0
 	call os_move_cursor
 	
-	
-	call os_clear_blinking_bit_bl
+	;checks to see if the system can support 16 colors, or only 8 colors and blinking.
+	;if the system can only support 8 colors and blinking, os_gfx_var will be set to 1
+	;and colors will be reduced so that no unintentional blinking occurs.
+	cmp byte [os_gfx_var], 1
+	je os_clear_blinking_bit_bl
 
 	mov ah, 09h
 	mov al, ' '
@@ -283,8 +294,11 @@ os_draw_bar:
 	call os_move_cursor
 	mov cx, word [.tmp]
 	
-	
-	call os_clear_blinking_bit_bl
+	;checks to see if the system can support 16 colors, or only 8 colors and blinking.
+	;if the system can only support 8 colors and blinking, os_gfx_var will be set to 1
+	;and colors will be reduced so that no unintentional blinking occurs.
+	cmp byte [os_gfx_var], 1
+	je os_clear_blinking_bit_bl
 	
 	mov ah, 09h
 	mov al, ' '

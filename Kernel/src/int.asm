@@ -7,6 +7,8 @@
 ;Input for specifying functions will most likely be DI.
 ;
 ;
+
+;Text mode graphics
 intF1h_enter:
 	cmp di, 00h
 	je .00
@@ -85,7 +87,8 @@ intF1h_enter:
 .0E:
 	call os_draw_box
 	iret
-	
+
+;Graphics mode primitives
 intF2h_enter:
 	cmp di, 00h
 	je .00
@@ -122,7 +125,8 @@ intF2h_enter:
 .06:
 .07:
 	iret
-	
+
+;Keyboard services
 intF3h_enter:
 	cmp di, 00h
 	je .00
@@ -137,6 +141,7 @@ intF3h_enter:
 	call os_check_for_key
 	iret
 	
+;String services
 intF4h_enter:
 	cmp di, 00h
 	je .00
@@ -187,7 +192,8 @@ intF4h_enter:
 .0A:
 .0B:
 	iret
-	
+
+;Disk services
 intF5h_enter:
 	cmp di, 00h
 	je .00
@@ -225,43 +231,70 @@ intF5h_enter:
 	call fat_file_delete
 	iret
 .06:
-	mov word [.ax], ax
-	mov word [.bx], bx
-	mov word [.cx], cx
-	mov word [.dx], dx
-	mov ax, cx
-	mov bx, dx
-	call fat_file_convert
-	jc .06_error
-	mov dx, bx
-	mov ax, word [.ax]
-	mov bx, word [.bx]
-	mov cx, word [.cx]
+	;mov word [.ax], ax
+	;mov word [.bx], bx
+	;mov word [.cx], cx
+	;mov word [.dx], dx
+	;mov ax, cx
+	;mov bx, dx
+	;call fat_file_convert
+	;jc .06_error
+	;mov dx, bx
+	;mov ax, word [.ax]
+	;mov bx, word [.bx]
+	;mov cx, word [.cx]
 	call fat_file_rename
 	iret
-.ax dw 0
-.bx dw 0
-.cx dw 0
-.dx dw 0
-.06_error:
+;.ax dw 0
+;.bx dw 0
+;.cx dw 0
+;.dx dw 0
+;.06_error:
 	iret
 .07:
 	call fat_file_create
 	iret
 	
+;Math services
 intF6h_enter:
 	iret
+	
+;
 intF7h_enter:
 	iret
+	
+;
 intF8h_enter:
 	iret
+	
+;
 intF9h_enter:
 	iret
+
+;
 intFAh_enter:
 	iret
+
+;
 intFBh_enter:
 	iret
+	
+;Miscellaneous services
 intFCh_enter:
+	cmp di, 00h
+	je .00
+	cmp di, 01h
+	je .01
+	stc
+	ret
+	
+.00:
 	iret
+.01:
+	call os_list_selector
+	iret
+	
+;System services
+;Not to be called often!
 intFDh_enter:
 	iret

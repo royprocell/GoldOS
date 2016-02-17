@@ -368,7 +368,6 @@ fat_file_rename:
 ;Creates a list of files on the disk, separated by commas and terminated with a zero.
 ;IN: Nothing
 ;OUT: AX: 2000h, BX: the offset in segment 2000h where the list of files exists
-;Copyright (C) 2006 - 2013 MikeOS Developers - http://mikeos.berlios.de
 ;==================
 fat_file_list:
 	pusha
@@ -525,7 +524,7 @@ fat_file_delete:
 fat_file_exec:
 	mov word [.file_segment], ax
 	mov word [.file_offset], bx
-	mov cx, 3000h
+	mov cx, 2000h
 	mov dx, 0
 	call fat_file_read
 	jc .error
@@ -539,7 +538,7 @@ fat_file_exec:
 	call os_clear_screen
 	mov dx, 0
 	call os_move_cursor
-	mov ax, 3000h
+	mov ax, 2000h
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
@@ -551,7 +550,7 @@ fat_file_exec:
 	mov si, 0
 	mov di, 0
 	clc
-	call 3000h:0000h
+	call 2000h:0A000h
 	clc
 	ret
 	
