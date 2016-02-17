@@ -122,6 +122,8 @@ main:
 	mov si, 0x63 ;create file option (c key)
 	int 0F8h
 	
+	jc exit
+	
 	cmp ah, 0
 	je open
 	cmp ah, 1
@@ -139,6 +141,9 @@ create:
 delete:
 	
 rename:
+
+exit:
+ret
 	
 
 prgm_vars:

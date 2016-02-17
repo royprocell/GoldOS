@@ -52,6 +52,9 @@ os_list_selector:
 	mov word [.title], cx
 	mov byte [.skip_entries], 0
 	mov byte [.entries], 0
+	mov byte [.option_1], dh
+	mov byte [.option_2], dl
+	mov word [.option_3], si
 	
 	; Count the number of entries in the list
 	mov cl, 0
@@ -297,4 +300,4 @@ os_list_selector:
 .title dw 0
 .option_1 db 0
 .option_2 db 0
-.option_3 db 0
+.option_3 dw 0

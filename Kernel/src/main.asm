@@ -324,19 +324,43 @@ load_file:
 	je .loff
 	
 .file:
-	mov ax, 2000h
-	mov bx, os_file_file
+	;mov ax, 2000h
+	;mov bx, os_file_file
 	;call fat_file_exec
-	mov cx, 2000h
-	mov dx, 9000h;49152
-	call fat_file_read
-	jc file_not_found
-	call 2000h:9000h
+	;mov cx, 2000h
+	;mov dx, 9000h;49152
+	;call fat_file_read
+	;jc file_not_found
 	mov ax, 2000h
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
+	
+	mov al, 3
+	call os_set_video_mode
+	
+	mov ax, 0
+	mov bx, 0
+	mov cx, 0
+	mov dx, 0
+	mov si, 0
+	mov di, 0
+	
+	call 2000h:9000h
+	
+	mov ax, 2000h
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ax, 0
+	mov bx, 0
+	mov cx, 0
+	mov dx, 0
+	mov si, 0
+	mov di, 0
+	
 	jmp main
 .edit:
 	mov ax, 2000h
@@ -532,6 +556,24 @@ os_draw_icon_kernel:
 .counter db 0
 .post_counter db 0
 .ax dw 0
+
+;==================
+;internal routine to detect if something can't load at startup.
+;==================
+fatal_error:
+	mov al, 3
+	call os_set_video_mode
+	
+	mov bh, 0
+	call os_clear_screen
+	
+	mov ax, 2000h
+	mov ds, ax
+	mov si, .message
+	call os_print_string
+	jmp end_main
+	
+.message db 'GoldOS encountered an error and cannot run.', 0
 	
 end_main:
 	jmp $

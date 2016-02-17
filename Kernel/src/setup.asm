@@ -96,3 +96,13 @@ interrupt_setup:
 	inc si
 	mov word [gs:si], bx
 	sti
+	
+program_setup:
+	mov ax, 2000h
+	mov bx, os_file_file
+	mov cx, 2000h
+	mov dx, 9000h
+	call fat_file_read
+	jc fatal_error
+	
+	
