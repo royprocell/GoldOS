@@ -211,9 +211,12 @@ intF5h_enter:
 	je .06
 	cmp di, 07h
 	je .07
+	cmp di, 08h
+	je .08
 	stc
 	iret
 .00:
+	;reserved
 	iret
 .01:
 	call fat_file_exist
@@ -253,6 +256,9 @@ intF5h_enter:
 	iret
 .07:
 	call fat_file_create
+	iret
+.08:
+	call fat_file_convert
 	iret
 	
 ;Math services

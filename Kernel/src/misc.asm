@@ -6,6 +6,9 @@
 ;Functions:
 ;os_random
 ;os_wait (done!)
+;os_clear_blinking_bit_bl (done!)
+;os_clear_blinking_bit_bh (done!)
+;os_list_selector (done!)
 
 ;==================
 ;os_wait
@@ -199,6 +202,8 @@ os_list_selector:
 	je .scroll_up
 	cmp ah, 50h
 	je .scroll_down
+	cmp al, 27
+	je .escape_pressed
 	cmp al, 13
 	je .option_selected
 	cmp al, byte [.option_1]
@@ -207,8 +212,6 @@ os_list_selector:
 	je .option_2_selected
 	cmp al, byte [.option_3]
 	je .option_3_selected
-	cmp al, 27
-	je .escape_pressed
 	
 	jmp .get_input
 	
@@ -251,6 +254,7 @@ os_list_selector:
 	
 .escape_pressed:
 	stc
+	mov ah, 0xFF
 	ret
 	
 .option_selected:
@@ -296,7 +300,7 @@ os_list_selector:
 .tmp db 0
 .dx_tmp dw 0
 .header db 'Menu', 0
-.subtitle db 'Use the UP and DOWN arrow keys to select an option, then press a key option', 0
+.subtitle db 'Use the UP and DOWN arrow keys to select an option, then press a key', 0
 .title dw 0
 .option_1 db 0
 .option_2 db 0

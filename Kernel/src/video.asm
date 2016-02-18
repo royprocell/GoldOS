@@ -388,7 +388,7 @@ os_set_cursor_bar:
 	pusha
 	mov cx, 0607h
 	call os_get_video_mode
-	mov ax, 1
+	mov ah, 1
 	int 10h
 	popa
 	ret

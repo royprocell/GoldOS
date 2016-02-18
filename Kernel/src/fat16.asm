@@ -142,14 +142,17 @@ fat_file_exist:
 fat_file_read:
 	pusha
 	mov word [.segment_file], ax
+	mov word [.offset_file], bx
 	mov word [.segment_to_load], cx
 	mov word [.offset_to_load], dx
 	call fat_file_exist
 	jc .error
-	mov word [.offset_file], bx
+	;mov word [.offset_file], bx
 	mov word [.pointer], 0
 	mov ax, word [es:di+1Ah]
 	mov word [.cluster], ax
+	cmp byte [es:di+0xB], 04h
+	je .error
 	call fat_table_read
 
 .read_sector:
@@ -411,14 +414,14 @@ fat_file_list:
 	
 .copy_loop:
 	mov al, byte [ds:si]
-	cmp al, ' '
-	je .space
+	;cmp al, ' '
+	;je .space
 	mov byte [es:di], al
 	inc si
 	inc di
 	inc cx
-	cmp cx, 8
-	je .add_dot
+	;cmp cx, 8
+	;je .add_dot
 	cmp cx, 11
 	je .done_copy_loop
 	jmp .copy_loop

@@ -80,7 +80,7 @@ main:
 	int 0F1h
 	mov ax, 2000h
 	mov ds, ax
-	mov si, welcome
+	mov si, welcome_msg
 	mov di, 0
 	int 0F4h
 	;mov dh, 1
@@ -116,7 +116,7 @@ main:
 	;int to draw and use menu
 	mov di, 1
 	mov ax, 2000h
-	mov cx, welcome
+	mov cx, welcome_msg
 	mov dh, 0x64 ;delete file option (d key)
 	mov dl, 0x72 ;rename file option (r key)
 	mov si, 0x63 ;create file option (c key)
@@ -125,33 +125,163 @@ main:
 	;if escape is pressed, exit the file manager
 	jc exit
 	
-	cmp ah, 0
+	;if the carry flag does not set, these two lines will ensure that the file manager exits
+	cmp ah, 0xFF
+	je exit
+	
+	;find the file in the list
+	mov byte [skip], al
+	mov byte [selected_option], ah
+	mov si, word [list_loc]
+
+	mov ah, 0
+	
+calculate_location:
+	mov cl, 12
+	dec al
+	mul cl
+
+	add si, ax
+	
+	mov word [si_tmp], si
+	
+found_file:
+	mov di, filename
+	lodsw
+	stosw
+	lodsw
+	stosw
+	lodsw
+	stosw
+	lodsw
+	stosw
+	lodsw
+	stosw
+	lodsb
+	stosb
+	
+	mov si, filename
+	
+choose_option:
+	cmp byte [selected_option], 0
 	je open
-	cmp ah, 1
+	cmp byte [selected_option], 1
 	je delete
-	cmp ah, 2
+	cmp byte [selected_option], 2
 	je rename
-	cmp ah, 3
+	cmp byte [selected_option], 3
 	je create
 	ret ;just in case the menu returns an invalid option
 
+;executes the file. must be binary file
 open:
+	;reads the file into memory
+	mov ax, 2000h
+	mov bx, si
+	mov cx, 2000h
+	mov dx, 0xA000
+	mov di, 3
+	int 0F5h
 	
+	jc io_error
+	
+	;clears screen
+	mov bh, 0x0F
+	mov di, 0xA
+	int 0F1h
+	
+	;moves cursor to 0,0
+	mov dx, 0
+	mov di, 2
+	int 0F1h
+	
+	;clears registers for program
+	mov ax, 2000h
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ax, 0
+	mov bx, 0
+	mov cx, 0
+	mov dx, 0
+	mov si, 0
+	mov di, 0
+	
+	;calls the newly-loaded program
+	call 2000h:0A000h
+	
+	;retf
+	
+	;sets video mode for return to file manager
+	mov al, 3
+	mov di, 0
+	int 0F1h
+	
+	;clears screen for return to file manager
+	mov bh, 0x0F
+	mov di, 0xA
+	int 0F1h
+	
+	;moves cursor to 0,0
+	mov dx, 0
+	mov di, 2
+	int 0F1h
+	
+	;clears registers for return to file manager
+	mov ax, 2000h
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ax, 0
+	mov bx, 0
+	mov cx, 0
+	mov dx, 0
+	mov si, 0
+	mov di, 0
+	
+	;reset variables used to load program
+	mov byte [skip], 0
+	mov byte [selected_option], 0
+	
+	jmp main
+	
+;creates new file after a dialogue box.
 create:
+	mov ax, 2000h
+	mov bx, test_f
+	mov di, 7
+	int 0F5h
 	
+	jmp main
+	
+;deletes a file. will not delete system files.
 delete:
+	mov ax, 2000h
+	mov bx, si
+	mov di, 5
+	int 0F5h
+	
+	jmp main
 	
 rename:
 
+io_error:
+
 exit:
-ret
-	
+retf
 
 prgm_vars:
-skip dw 0
-current_entry dw 0
+skip db 0
+selected_option db 0
 list_loc dw 0
-list_size dw 0
+ax_tmp dw 0
+si_tmp dw 0
+db 0
+test_f db 'FAFSA   BIN', 0
+filename times 13 db 0
 	
 prgm_strings:
-welcome db 'GoldOS File Manager 3.0', 0
+welcome_msg db 'GoldOS File Manager 3.0 | ENTER = open, D = delete, C = create, R = rename', 0
+error_msg db 'Error!', 0
