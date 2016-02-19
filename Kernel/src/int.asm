@@ -215,8 +215,6 @@ intF5h_enter:
 	je .08
 	cmp di, 09h
 	je .09
-	cmp di, 0xA
-	je .0A
 	stc
 	iret
 .00:
@@ -266,9 +264,6 @@ intF5h_enter:
 	iret
 .09:
 	call fat_file_attrib
-	iret
-.0A:
-	call fat_root_remove_deleted_entries
 	iret
 	
 ;Math services

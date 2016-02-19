@@ -50,6 +50,8 @@ choose_option:
 	je the_colors_are_weird
 	cmp al, 5
 	je computer_restarts_or_hangs
+	cmp al, 6
+	je file_types
 	jmp main
 	
 what_can_goldos_do:
@@ -454,6 +456,75 @@ computer_restarts_or_hangs:
 	
 	jmp main
 
+file_types:
+	mov word [selected_title], title6
+	call screen_setup
+	
+	mov si, msg61
+	mov di, 0
+	int 0F4h
+	
+	mov di, 3
+	int 0F1h
+	
+	inc dh
+	mov di, 2
+	int 0F1h
+	
+	mov si, msg62
+	mov di, 0
+	int 0F4h
+	
+	mov di, 3
+	int 0F1h
+	
+	inc dh
+	mov di, 2
+	int 0F1h
+	
+	mov si, msg63
+	mov di, 0
+	int 0F4h
+	
+	mov di, 3
+	int 0F1h
+	
+	inc dh
+	inc dh
+	mov di, 2
+	int 0F1h
+	
+	mov si, msg64
+	mov di, 0
+	int 0F4h
+	
+	mov di, 3
+	int 0F1h
+	
+	inc dh
+	mov di, 2
+	int 0F1h
+	
+	mov si, msg65
+	mov di, 0
+	int 0F4h
+	
+	mov di, 3
+	int 0F1h
+	
+	add dh, 13
+	mov di, 2
+	int 0F1h
+	
+	mov si, back_msg
+	mov di, 0
+	int 0F4h
+	
+	mov di, 0
+	int 0F3h
+	
+	jmp main
+	
 screen_setup:
 	;draws header at the top
 	mov bl, 0x83
@@ -515,6 +586,7 @@ title2 db 'Who created GoldOS?', 0
 title3 db 'What do specific error codes mean?', 0
 title4 db "The colors are weird and everything is blinking. What's happening?", 0
 title5 db "When I shutdown my computer it either restarts or hangs! Why's that?", 0
+title6 db 'What file types does GoldOS recognize?', 0
 selected_title dw 0
 msg11 db 'At the moment, GoldOS is under development.', 0
 msg12 db 'This means that not all features have been added yet.', 0
@@ -546,5 +618,10 @@ msg45 db 'setting.', 0
 msg51 db "GoldOS's power management drivers might not be completely compatible", 0
 msg52 db 'with your computer. There is no way to fix this other than manually', 0
 msg53 db 'shutting down your computer by holding down the power button.', 0
+msg61 db 'GoldOS recognizes the following file types:', 0
+msg62 db 'Executable files: BIN, DMO', 0
+msg63 db 'Text files: TXT, ASM, CPP, PY, C', 0
+msg64 db 'Image files: PCX, 13H', 0
+msg65 db 'Sound files: none at the moment', 0
 back_msg db 'Press any key to go back.', 0
-list db "What can GoldOS do?,Who created GoldOS?,What do specific error codes mean?,The colors are weird and everything is blinking. What's happening?,When I shutdown my computer it either restarts or hangs! Why's that?", 0
+list db "What can GoldOS do?,Who created GoldOS?,What do specific error codes mean?,The colors are weird and everything is blinking. What's happening?,When I shutdown my computer it either restarts or hangs! Why's that?,What file types does GoldOS recognize?", 0

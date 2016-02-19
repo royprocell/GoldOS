@@ -201,6 +201,9 @@ create:
 	mov bl, 8
 	int 0F8h
 	
+	cmp ah, 0xFF
+	je main
+	
 	;write spaces to filename_rename
 	mov al, ' '
 	mov di, filename
@@ -263,7 +266,7 @@ create:
 	je .c
 	cmp al, 7
 	je .cpp
-	cmp al, 0xFF
+	cmp ah, 0xFF
 	je main
 	
 .txt:
@@ -368,7 +371,7 @@ create:
 	;convert to uppercase
 	mov di, 3
 	mov ax, 2000h
-	mov bx, filename
+	mov si, filename
 	mov di, 3
 	int 0F4h
 
@@ -403,6 +406,9 @@ rename:
 	mov ax, welcome_input_msg
 	mov bl, 8
 	int 0F8h
+	
+	cmp ah, 0xFF
+	je main
 	
 	;write spaces to filename_rename
 	mov al, ' '
@@ -464,7 +470,7 @@ rename:
 	;convert to uppercase
 	mov di, 3
 	mov ax, 2000h
-	mov bx, filename_rename
+	mov si, filename_rename
 	mov di, 3
 	int 0F4h
 
@@ -477,6 +483,7 @@ rename:
 	
 	jc error_io
 	
+.cancel:
 	jmp main
 
 error_io:

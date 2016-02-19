@@ -202,6 +202,7 @@ fat_file_read:
 ;==================
 fat_file_create:
 	pusha
+	call fat_root_remove_deleted_entries
 	mov word [.segment], ax
 	mov word [.offset], bx
 	call fat_file_exist

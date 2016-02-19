@@ -310,7 +310,7 @@ os_list_selector:
 ;os_input_dialogue
 ;Lets the user input a string.
 ;IN: AX: title of menu, BL: number of characters allowed (80 max)
-;OUT: BX: offset of string location in kernel segment (2000h)
+;OUT: BX: offset of string location in kernel segment (2000h), AH: equals 0xFF if escape pressed
 ;==================
 os_input_dialogue:
 	mov word [.title], ax
@@ -320,6 +320,9 @@ os_input_dialogue:
 
 	mov bl, 0x70
 	call os_clear_screen
+	
+	;cleans the string location so that we don't have left-over junk from a previous string
+	call .clean_string
 
 	mov bl, 0x83
 	mov dh, 0
@@ -418,9 +421,17 @@ os_input_dialogue:
 
 .cancel:
 	stc
+	mov ah, 0xFF
+	ret
+
+.clean_string:
+	mov cx, 80
+	mov di, .string
+	mov al, 0
+	rep stosb
 	ret
 
 .title dw 0
 .subtitle db 'Input a string and press ENTER to confirm or ESCAPE to go back', 0
 .chars db 0
-.string times (256) db 0
+.string times (81) db 0
