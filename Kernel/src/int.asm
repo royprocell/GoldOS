@@ -213,6 +213,10 @@ intF5h_enter:
 	je .07
 	cmp di, 08h
 	je .08
+	cmp di, 09h
+	je .09
+	cmp di, 0xA
+	je .0A
 	stc
 	iret
 .00:
@@ -260,6 +264,12 @@ intF5h_enter:
 .08:
 	call fat_file_convert
 	iret
+.09:
+	call fat_file_attrib
+	iret
+.0A:
+	call fat_root_remove_deleted_entries
+	iret
 	
 ;Math services
 intF6h_enter:
@@ -275,18 +285,32 @@ intF8h_enter:
 	je .00
 	cmp di, 01h
 	je .01
+	cmp di, 02h
+	je .02
 	stc
 	iret
-	
 .00:
 	iret
 .01:
 	call os_list_selector
 	iret
+.02:
+	call os_input_dialogue
+	iret
 	
 ;System services
 ;Not to be called often!
 intF9h_enter:
+	cmp di, 00h
+	je .00
+	stc
+	iret
+	
+;gives the locations of several important GoldOS variables.
+;AX=os_gfx_var, DX=os_disk_num
+.00:
+	mov ax, os_gfx_var
+	mov dx, os_disk_num
 	iret
 
 ;Unprogrammed extra interrupt 1

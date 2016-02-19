@@ -47,7 +47,7 @@ os_clear_blinking_bit_bh:
 ;os_list_selector
 ;Provides a menu to select objects from. Warning: lists can only hold 256 items.
 ;IN: AX: segment of list location, BX: offset of list location, CX: title of menu, DH: selection option 1, DL: selection option 2, SI: selection option 3
-;OUT: AL: number of selected item in list, AH: number of selected option (0 for enter, 1 for option 1, 2 for option 2, 3 for option 3)
+;OUT: AL: number of selected item in list, AH: number of selected option (0 for enter, 1 for option 1, 2 for option 2, 3 for option 3, 0xFF for escape)
 ;==================
 os_list_selector:
 	mov word [.segment], ax
@@ -305,3 +305,122 @@ os_list_selector:
 .option_1 db 0
 .option_2 db 0
 .option_3 dw 0
+
+;==================
+;os_input_dialogue
+;Lets the user input a string.
+;IN: AX: title of menu, BL: number of characters allowed (80 max)
+;OUT: BX: offset of string location in kernel segment (2000h)
+;==================
+os_input_dialogue:
+	mov word [.title], ax
+	mov byte [.chars], bl
+	cmp bl, 81
+	jae .cancel
+
+	mov bl, 0x70
+	call os_clear_screen
+
+	mov bl, 0x83
+	mov dh, 0
+	call os_draw_border
+	mov bl, 0x83
+	mov dh, 1
+	call os_draw_border
+	mov dx, 0
+	call os_move_cursor
+	mov si, word [.title]
+	call os_print_string
+	mov dh, 1
+	mov dl, 0
+	call os_move_cursor
+	mov si, word [.subtitle]
+	call os_print_string
+	
+	mov bl, 0xF0
+	mov dh, 3
+	mov dl, 1
+	mov cl, [.chars]
+	mov ax, 1
+	call os_draw_box
+	
+	mov cl, 0
+	mov di, .string
+	
+	call os_set_cursor_visible
+	call os_enable_blinking
+	
+.input_loop:
+	call os_wait_for_key
+	cmp al, 13
+	je .finished_typing
+	cmp al, 27
+	je .cancel
+	cmp al, 8
+	je .backspace
+	cmp cl, [.chars]
+	je .input_loop
+	cmp al, '/'
+	je .input_loop
+	cmp al, 92
+	je .input_loop
+	cmp al, ':'
+	je .input_loop
+	cmp al, '*'
+	je .input_loop
+	cmp al, '?'
+	je .input_loop
+	cmp al, 34
+	je .input_loop
+	cmp al, "<"
+	je .input_loop
+	cmp al, ">"
+	je .input_loop
+	cmp al, "|"
+	je .input_loop
+	cmp al, 31
+	jbe .input_loop
+	cmp al, 127
+	jae .input_loop
+	jmp .typing
+	
+.typing:
+	cmp cl, [.chars]
+	je .input_loop
+	stosb
+	call os_print_char
+	inc cl
+	jmp .input_loop
+	
+.backspace:
+	cmp cl, 0
+	je .input_loop
+	mov al, 8
+	call os_print_char
+	mov al, 0
+	mov byte [es:di], al
+	mov al, 20h
+	call os_print_char
+	mov al, 8
+	call os_print_char
+	dec cl
+	dec di
+	jmp .input_loop
+	
+.finished_typing:
+	mov al, 0
+	stosb
+	mov bx, .string
+	call os_set_cursor_invisible
+	call os_disable_blinking
+	clc
+	ret
+
+.cancel:
+	stc
+	ret
+
+.title dw 0
+.subtitle db 'Input a string and press ENTER to confirm or ESCAPE to go back', 0
+.chars db 0
+.string times (256) db 0

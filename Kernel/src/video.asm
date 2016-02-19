@@ -119,7 +119,7 @@ os_set_cursor_invisible:
 ;==================
 ;os_clear_screen
 ;Clears the screen of text
-;IN:	BH: background color
+;IN:	BL: color IGNORE:(BH: background color)
 ;OUT:	Nothing
 ;==================
 os_clear_screen:
@@ -133,15 +133,23 @@ os_clear_screen:
 	jmp .interrupt
 	
 .color_filter:
-	call os_clear_blinking_bit_bh
+	call os_clear_blinking_bit_bl;h
 	
 .interrupt:
-	mov ah, 06h
-	mov ch, 0
-	mov cl, 0
-	mov dh, 24
-	mov dl, 79
-	int 10h
+	mov dh, 0
+	mov cx, 25
+	
+.loop:
+	call os_draw_border
+	inc dh
+	loop .loop
+
+	;mov ah, 06h
+	;mov ch, 0
+	;mov cl, 0
+	;mov dh, 24
+	;mov dl, 79
+	;int 10h
 	popa
 	ret
 

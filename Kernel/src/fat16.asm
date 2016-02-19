@@ -151,8 +151,6 @@ fat_file_read:
 	mov word [.pointer], 0
 	mov ax, word [es:di+1Ah]
 	mov word [.cluster], ax
-	cmp byte [es:di+0xB], 04h
-	je .error
 	call fat_table_read
 
 .read_sector:
@@ -334,6 +332,12 @@ fat_file_rename:
 	mov word [.org_offset], bx
 	mov word [.new_segment], cx
 	mov word [.new_offset], dx
+	mov ax, word [.new_segment]
+	mov bx, word [.new_offset]
+	call fat_file_exist
+	jnc .error
+	mov ax, word [.org_segment]
+	mov bx, word [.org_offset]
 	call fat_file_exist
 	jc .error
 	mov ax, word [.new_segment]
@@ -341,7 +345,7 @@ fat_file_rename:
 	mov si, word [.new_offset]
 	mov cx, 2000h
 	mov es, cx
-	mov cx, 11
+	mov cx, 8;11 ;only loop 8 times so that the extension remains the same
 	
 .copy_loop:
 	mov dl, byte [ds:si]
@@ -477,6 +481,8 @@ fat_file_delete:
 	mov word [.cluster], ax
 	cmp byte [es:di+0xB], 04h
 	je .error
+	cmp byte [es:di+0xB], 64h
+	je .error
 	mov byte [es:di], 0xE5
 	call fat_root_write
 	
@@ -528,7 +534,7 @@ fat_file_exec:
 	mov word [.file_segment], ax
 	mov word [.file_offset], bx
 	mov cx, 2000h
-	mov dx, 0
+	mov dx, 0xA000
 	call fat_file_read
 	jc .error
 	
@@ -734,3 +740,58 @@ fat_file_write:
 .current_cluster dw 0
 .first_cluster dw 0
 .free_clusters times (128) dw 0
+
+;==================
+;fat_file_attrib
+;Finds a file and returns the file attribute.
+;Default Attributes: 0x00 = normal file, 0x02 = hidden file, 0x04 = system file, 0x08 = volume label, 0x10 = subdirectory, 0x20 = archive file, 0x40 = device, 0x80 = reserved.
+;GoldOS Attributes: 0x64 = GoldOS kernel file.
+;IN: AX: segment of file name string, BX: offset of file name string
+;OUT: AL: file attributes
+;==================
+fat_file_attrib:
+	call fat_file_exist
+	jc .error
+	mov al, byte [es:di+0xB]
+	ret
+	
+.error:
+	stc
+	ret
+	
+;==================
+;fat_root_remove_deleted_entries
+;Removes deleted entries from the root directory.
+;IN: Nothing
+;OUT: Nothing
+;==================
+fat_root_remove_deleted_entries:
+	pusha
+	call fat_root_read
+	mov si, fs_buffer
+	mov di, fs_buffer
+	
+	mov cx, 256
+	mov dx, 0
+	
+.find_loop:
+	cmp byte [ds:si], 0xE5
+	je .found_entry
+	add si, 32
+	loop .find_loop
+	jmp .done
+	
+.found_entry:
+	mov di, si
+	mov dx, 32
+	xchg cx, dx
+	mov al, 0
+	rep stosb
+	xchg dx, cx
+	add si, 32
+	loop .find_loop
+	
+.done:
+	call fat_root_write
+	popa
+	ret

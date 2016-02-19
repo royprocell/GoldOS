@@ -15,55 +15,8 @@ main:
 	mov al, 3
 	int 0F1h
 	
-	;clears the screen with the color 0x70 (aka light grey background with black text)
-	;we have to do it by drawing borders because the bios is glitchy for some reason
 	mov bl, 0x70
-	mov dh, 2
-	mov di, 0Ch
-	int 0F1h
-	mov dh, 3
-	int 0F1h
-	mov dh, 4
-	int 0F1h
-	mov dh, 5
-	int 0F1h
-	mov dh, 6
-	int 0F1h
-	mov dh, 7
-	int 0F1h
-	mov dh, 8
-	int 0F1h
-	mov dh, 9
-	int 0F1h
-	mov dh, 10
-	int 0F1h
-	mov dh, 11
-	int 0F1h
-	mov dh, 12
-	int 0F1h
-	mov dh, 13
-	int 0F1h
-	mov dh, 14
-	int 0F1h
-	mov dh, 15
-	int 0F1h
-	mov dh, 16
-	int 0F1h
-	mov dh, 17
-	int 0F1h
-	mov dh, 18
-	int 0F1h
-	mov dh, 19
-	int 0F1h
-	mov dh, 20
-	int 0F1h
-	mov dh, 21
-	int 0F1h
-	mov dh, 22
-	int 0F1h
-	mov dh, 23
-	int 0F1h
-	mov dh, 24
+	mov di, 0xA
 	int 0F1h
 	
 	;draws a bar at the top two rows of the screen with the color 0x83 (aka dark grey background with cyan text)
@@ -83,28 +36,6 @@ main:
 	mov si, welcome_msg
 	mov di, 0
 	int 0F4h
-	;mov dh, 1
-	;mov dl, 0
-	;mov di, 02h
-	;int 0F1h
-	;mov si, instructions
-	;mov di, 0
-	;int 0F4h
-	
-	;draws the header
-	;mov bl, 0x83
-	;mov dh, 3
-	;mov dl, 2
-	;mov cx, 76
-	;mov di, 0Dh
-	;int 0F1h
-	;mov dh, 3
-	;mov dl, 2
-	;mov di, 02h
-	;int 0F1h
-	;mov si, header
-	;mov di, 0
-	;int 0F4h
 	
 	;get list from kernel
 	mov di, 02h
@@ -122,12 +53,15 @@ main:
 	mov si, 0x63 ;create file option (c key)
 	int 0F8h
 	
-	;if escape is pressed, exit the file manager
-	jc exit
-	
-	;if the carry flag does not set, these two lines will ensure that the file manager exits
+	;0xFF is the option in the menu to exit
 	cmp ah, 0xFF
 	je exit
+	
+	;resets cursor to bar and hides it
+	mov di, 7
+	int 0F1h
+	mov di, 5
+	int 0F1h
 	
 	;find the file in the list
 	mov byte [skip], al
@@ -160,8 +94,6 @@ found_file:
 	lodsb
 	stosb
 	
-	mov si, filename
-	
 choose_option:
 	cmp byte [selected_option], 0
 	je open
@@ -175,18 +107,35 @@ choose_option:
 
 ;executes the file. must be binary file
 open:
+	mov cx, 3
+	mov si, filename
+	add si, 8
+	mov di, bin_ext
+	rep cmpsb
+	jne error_not_bin
+	
+	mov cx, 11
+	mov si, filename
+	mov di, kernel_name
+	rep cmpsb
+	je error_sys_file
+	
+	mov cx, 11
+	mov si, filename
+	mov di, filemngr_name
+	rep cmpsb
+	je error_sys_file
+
 	;reads the file into memory
 	mov ax, 2000h
-	mov bx, si
+	mov bx, filename
 	mov cx, 2000h
 	mov dx, 0xA000
 	mov di, 3
 	int 0F5h
 	
-	jc io_error
-	
 	;clears screen
-	mov bh, 0x0F
+	mov bl, 0x0F
 	mov di, 0xA
 	int 0F1h
 	
@@ -211,15 +160,13 @@ open:
 	;calls the newly-loaded program
 	call 2000h:0A000h
 	
-	;retf
-	
 	;sets video mode for return to file manager
 	mov al, 3
 	mov di, 0
 	int 0F1h
 	
 	;clears screen for return to file manager
-	mov bh, 0x0F
+	mov bl, 0x0F
 	mov di, 0xA
 	int 0F1h
 	
@@ -249,28 +196,327 @@ open:
 	
 ;creates new file after a dialogue box.
 create:
+	mov di, 2
+	mov ax, welcome_input_msg
+	mov bl, 8
+	int 0F8h
+	
+	;write spaces to filename_rename
+	mov al, ' '
+	mov di, filename
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	
+	;copy filename
+	mov si, bx
+	mov di, filename
+	lodsw
+	stosw
+	lodsw
+	stosw
+	lodsw
+	stosw
+	lodsw
+	stosw
+	
+	;clear the screen from input dialogue
+	mov bl, 0x70
+	mov di, 0xA
+	int 0F1h
+	mov bl, 0x83
+	mov dh, 0
+	mov di, 0Ch
+	int 0F1h
+	mov dh, 1
+	int 0F1h
+	
+	;ask user for extension
+	mov di, 1
 	mov ax, 2000h
-	mov bx, test_f
+	mov bx, ext_list
+	mov cx, welcome_ext_msg
+	mov dh, 0
+	mov dl, 0
+	mov si, 0
+	int 0F8h
+	
+	cmp al, 1
+	je .txt
+	cmp al, 2
+	je .13h
+	cmp al, 3
+	je .pcx
+	cmp al, 4
+	je .py
+	cmp al, 5
+	je .asm
+	cmp al, 6
+	je .c
+	cmp al, 7
+	je .cpp
+	cmp al, 0xFF
+	je main
+	
+.txt:
+	mov si, txt
+	mov di, filename
+	add di, 8
+	lodsb
+	stosb
+	lodsb
+	stosb
+	lodsb
+	stosb
+	jmp .replace_zeroes_setup
+
+.13h:
+	mov si, ext_13h
+	mov di, filename
+	add di, 8
+	lodsb
+	stosb
+	lodsb
+	stosb
+	lodsb
+	stosb
+	jmp .replace_zeroes_setup
+
+.pcx:
+	mov si, pcx
+	mov di, filename
+	add di, 8
+	lodsb
+	stosb
+	lodsb
+	stosb
+	lodsb
+	stosb
+	jmp .replace_zeroes_setup
+
+.py:
+	mov si, py
+	mov di, filename
+	add di, 8
+	lodsb
+	stosb
+	lodsb
+	stosb
+	jmp .replace_zeroes_setup
+
+.asm:
+	mov si, asm
+	mov di, filename
+	add di, 8
+	lodsb
+	stosb
+	lodsb
+	stosb
+	lodsb
+	stosb
+	jmp .replace_zeroes_setup
+
+.c:
+	mov si, c_ext
+	mov di, filename
+	add di, 8
+	lodsb
+	stosb
+	jmp .replace_zeroes_setup
+
+.cpp:
+	mov si, cpp
+	mov di, filename
+	add di, 8
+	lodsb
+	stosb
+	lodsb
+	stosb
+	lodsb
+	stosb
+	jmp .replace_zeroes_setup
+
+.replace_zeroes_setup:
+	mov si, filename
+	mov cx, 11
+	
+.replace_zeroes_loop:
+	cmp cx, 0
+	je .zeroes_replaced
+	cmp byte [ds:si], 0
+	je .zero_found
+	inc si
+	dec cx
+	jmp .replace_zeroes_loop
+	
+.zero_found:
+	mov al, ' '
+	mov byte [ds:si], al
+	inc si
+	dec cx
+	jmp .replace_zeroes_loop
+	
+.zeroes_replaced:
+	;convert to uppercase
+	mov di, 3
+	mov ax, 2000h
+	mov bx, filename
+	mov di, 3
+	int 0F4h
+
+	mov ax, 2000h
+	mov bx, filename
 	mov di, 7
 	int 0F5h
+	
+	jc error_io
 	
 	jmp main
 	
 ;deletes a file. will not delete system files.
 delete:
 	mov ax, 2000h
-	mov bx, si
+	mov bx, filename
+	mov di, 9
+	int 0F5h
+	
+	cmp al, 0x04
+	je error_sys_file
+	
+	mov ax, 2000h
+	mov bx, filename
 	mov di, 5
 	int 0F5h
 	
 	jmp main
 	
 rename:
+	mov di, 2
+	mov ax, welcome_input_msg
+	mov bl, 8
+	int 0F8h
+	
+	;write spaces to filename_rename
+	mov al, ' '
+	mov di, filename_rename
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	
+	;keep extension
+	mov si, filename
+	add si, 8
+	mov di, filename_rename
+	add di, 8
+	lodsw
+	stosw
+	lodsb
+	stosb
+	
+	;copy new file name
+	mov si, bx
+	mov di, filename_rename
+	lodsw
+	stosw
+	lodsw
+	stosw
+	lodsw
+	stosw
+	lodsw
+	stosw
+	
+	mov si, filename_rename
+	mov cx, 11
+	
+.replace_zeroes_loop:
+	cmp cx, 0
+	je .zeroes_replaced
+	cmp byte [ds:si], 0
+	je .zero_found
+	inc si
+	dec cx
+	jmp .replace_zeroes_loop
+	
+.zero_found:
+	mov al, ' '
+	mov byte [ds:si], al
+	inc si
+	dec cx
+	jmp .replace_zeroes_loop
+	
+.zeroes_replaced:
+	;convert to uppercase
+	mov di, 3
+	mov ax, 2000h
+	mov bx, filename_rename
+	mov di, 3
+	int 0F4h
 
-io_error:
+	mov ax, 2000h
+	mov bx, filename
+	mov cx, 2000h
+	mov dx, filename_rename
+	mov di, 6
+	int 0F5h
+	
+	jc error_io
+	
+	jmp main
+
+error_io:
+	mov di, 1
+	mov ax, 2000h
+	mov bx, error_io_msg
+	mov cx, welcome_error_msg
+	mov dh, 0
+	mov dl, 0
+	mov si, 0
+	int 0F8h
+	
+	jmp main
+
+error_sys_file:
+	mov di, 1
+	mov ax, 2000h
+	mov bx, error_sys_file_msg
+	mov cx, welcome_error_msg
+	mov dh, 0
+	mov dl, 0
+	mov si, 0
+	int 0F8h
+
+	jmp main
+	
+error_not_bin:
+	mov di, 1
+	mov ax, 2000h
+	mov bx, error_not_bin_msg
+	mov cx, welcome_error_msg
+	mov dh, 0
+	mov dl, 0
+	mov si, 0
+	int 0F8h
+
+	jmp main
 
 exit:
-retf
+	retf
 
 prgm_vars:
 skip db 0
@@ -281,7 +527,25 @@ si_tmp dw 0
 db 0
 test_f db 'FAFSA   BIN', 0
 filename times 13 db 0
+filename_rename times 13 db 0
+bin_ext db 'BIN', 0
+kernel_name db 'KERNEL  BIN', 0
+filemngr_name db 'FILEMNGRBIN', 0
+txt db 'TXT', 0
+pcx db 'PCX', 0
+ext_13h db '13H', 0
+py db 'PY', 0
+asm db 'ASM', 0
+c_ext db 'C', 0
+cpp db 'CPP', 0
+selected_title dw 0
 	
 prgm_strings:
-welcome_msg db 'GoldOS File Manager 3.0 | ENTER = open, D = delete, C = create, R = rename', 0
-error_msg db 'Error!', 0
+welcome_msg db 'GoldOS File Manager 3.0 | ENTER = open, D = delete, C = create, R = rename      ', 0
+welcome_error_msg db 'GoldOS File Manager 3.0 | Error! Press ENTER or ESCAPE to go back               ', 0
+welcome_input_msg db 'GoldOS File Manager 3.0 | Create a new file or rename an existing file          ', 0
+welcome_ext_msg db 'GoldOS File Manager 3.0 | Add an extension to your new file                     ', 0
+error_io_msg db 'A disk error occured. Unable to handle request.', 0
+error_sys_file_msg db 'Unable to modify system files.', 0
+error_not_bin_msg db 'Unable to execute non-binary file.', 0
+ext_list db 'TXT,13H,PCX,PY,ASM,C,CPP', 0
