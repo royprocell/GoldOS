@@ -468,6 +468,7 @@ file_types:
 	int 0F1h
 	
 	inc dh
+	inc dh
 	mov di, 2
 	int 0F1h
 	
@@ -489,7 +490,6 @@ file_types:
 	mov di, 3
 	int 0F1h
 	
-	inc dh
 	inc dh
 	mov di, 2
 	int 0F1h

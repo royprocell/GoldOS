@@ -149,7 +149,12 @@ fat_file_read:
 	jc .error
 	;mov word [.offset_file], bx
 	mov word [.pointer], 0
+	mov ax, word [es:di+1Eh]
+	cmp ax, 0
+	jne .error
 	mov ax, word [es:di+1Ah]
+	cmp ax, 0
+	je .error
 	mov word [.cluster], ax
 	call fat_table_read
 
