@@ -59,6 +59,17 @@ os_list_selector:
 	mov byte [.option_2], dl
 	mov word [.option_3], si
 	
+	;draw the header and set background color
+	pusha
+	mov bl, 0x70
+	call os_clear_screen
+	mov bl, 0x83
+	mov dh, 0
+	call os_draw_border
+	inc dh
+	call os_draw_border
+	popa
+	
 	; Count the number of entries in the list
 	mov cl, 0
 	mov ds, ax

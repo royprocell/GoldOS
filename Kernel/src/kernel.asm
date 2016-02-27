@@ -11,7 +11,7 @@ setup:
 	;%include 'C:\users\roy\desktop\GoldOS\setup.asm'
 
 main:
-	;draws main scree
+	;draws main screen
 	%include 'C:\users\golde\documents\github\GoldOS\kernel\src\main.asm'
 	;%include 'C:\users\roy\desktop\GoldOS\main.asm'
 	

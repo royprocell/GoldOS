@@ -207,7 +207,6 @@ fat_file_read:
 ;==================
 fat_file_create:
 	pusha
-	call fat_root_remove_deleted_entries
 	mov word [.segment], ax
 	mov word [.offset], bx
 	call fat_file_exist
@@ -219,11 +218,28 @@ fat_file_create:
 	mov dl, byte [es:di]
 	cmp dl, 0
 	je .found_free_entry
+	cmp dl, 0xE5
+	je .found_free_entry
 	add di, 32
 	loop .search_loop
 	jmp .error
 	
 .found_free_entry:
+	mov cx, 16
+	mov word [.di_tmp], di
+	
+.clear_loop:
+	cmp cx, 0
+	je .clear_done
+	mov word [es:di], 0
+	inc di
+	inc di
+	dec cx
+	jmp .clear_loop
+	
+.clear_done:
+	mov di, word [.di_tmp]
+	
 	mov ax, 2000h
 	mov es, ax
 	mov ax, word [.segment]
@@ -250,6 +266,7 @@ fat_file_create:
 	
 .segment dw 0
 .offset dw 0
+.di_tmp dw 0
 
 ;==================
 ;fat_file_convert
@@ -751,53 +768,17 @@ fat_file_write:
 ;fat_file_attrib
 ;Finds a file and returns the file attribute.
 ;Default Attributes: 0x00 = normal file, 0x02 = hidden file, 0x04 = system file, 0x08 = volume label, 0x10 = subdirectory, 0x20 = archive file, 0x40 = device, 0x80 = reserved.
-;GoldOS Attributes: 0x64 = GoldOS kernel file.
+;Also returns file size.
 ;IN: AX: segment of file name string, BX: offset of file name string
-;OUT: AL: file attributes
+;OUT: AL: file attributes, BX: file size
 ;==================
 fat_file_attrib:
 	call fat_file_exist
 	jc .error
 	mov al, byte [es:di+0xB]
+	mov bx, word [es:di+0x1C]
 	ret
 	
 .error:
 	stc
-	ret
-	
-;==================
-;fat_root_remove_deleted_entries
-;Removes deleted entries from the root directory.
-;IN: Nothing
-;OUT: Nothing
-;==================
-fat_root_remove_deleted_entries:
-	pusha
-	call fat_root_read
-	mov si, fs_buffer
-	mov di, fs_buffer
-	
-	mov cx, 256
-	mov dx, 0
-	
-.find_loop:
-	cmp byte [ds:si], 0xE5
-	je .found_entry
-	add si, 32
-	loop .find_loop
-	jmp .done
-	
-.found_entry:
-	mov di, si
-	mov dx, 32
-	xchg cx, dx
-	mov al, 0
-	rep stosb
-	xchg dx, cx
-	add si, 32
-	loop .find_loop
-	
-.done:
-	call fat_root_write
-	popa
 	ret
