@@ -240,8 +240,6 @@ calc_skip:
 	jmp .skip
 	
 render:
-	mov di, 0
-	int 0F3h
 	;find out what row we are on
 	mov di, 3
 	int 0F1h

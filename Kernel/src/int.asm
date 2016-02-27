@@ -118,12 +118,19 @@ intF2h_enter:
 	call os_clear_screen_gfx
 	iret
 .03:
-	call os_draw_box_gfx
+	;call os_draw_line_gfx
 	iret
 .04:
+	;call os_draw_triangle_gfx
+	iret
 .05:
+	call os_draw_box_gfx
+	iret
 .06:
+	;call os_draw_polygon
+	iret
 .07:
+	call os_draw_icon
 	iret
 
 ;Keyboard services
