@@ -410,8 +410,19 @@ newline:
 	inc si
 	mov di, 3
 	int 0F1h
+	;if the cursor is at the bottom, don't attempt to go down a line!
+	cmp dh, 23
+	je .at_bottom
 	mov dl, 0
 	inc dh
+	mov byte [cursor_x], dl
+	mov byte [cursor_y], dh
+	mov word [location], si
+	jmp screen_setup
+	
+.at_bottom:
+	inc word [skip]
+	mov dl, 0
 	mov byte [cursor_x], dl
 	mov byte [cursor_y], dh
 	mov word [location], si
