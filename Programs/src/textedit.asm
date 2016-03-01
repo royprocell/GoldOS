@@ -8,6 +8,13 @@ main:
 	;we will use the gs segment to perform changes on our file
 	mov ax, 3000h
 	mov gs, ax
+	
+	mov byte [cursor_x], 0
+	mov byte [cursor_y], 0
+	mov word [filesize], 0
+	mov word [skip], 0
+	mov word [location], 0
+	mov byte [decs_left], 0
 
 	mov di, 0
 	mov al, 3
@@ -56,6 +63,13 @@ main:
 	jmp main
 	
 edit_existing_file:
+	mov byte [cursor_x], 0
+	mov byte [cursor_y], 0
+	mov word [filesize], 0
+	mov word [skip], 0
+	mov word [location], 0
+	mov byte [decs_left], 0
+	
 	mov bl, 0x70
 	mov di, 0xA
 	int 0F1h
@@ -290,6 +304,15 @@ render:
 	jmp render
 	
 .done:
+	;draw the last bar at the bottom after .next_line erased it
+	mov bl, 0x83
+	mov dh, 24
+	mov di, 0Ch
+	int 0F1h
+	;set the cursor
+	mov dl, 0
+	mov di, 2
+	int 0F1h
 	;set the cursor to the appropriate location
 	mov dl, byte [cursor_x]
 	mov dh, byte [cursor_y]
@@ -922,7 +945,16 @@ save:
 	jc error_io
 	popa
 	
-	jmp input
+	mov di, 1
+	mov ax, 2000h
+	mov bx, list_save
+	mov cx, welcome_msg
+	mov dh, 0
+	mov dl, 0
+	mov si, 0
+	int 0F8h
+	
+	jmp edit_existing_file
 	
 error_not_txt:
 	mov di, 1
@@ -974,6 +1006,7 @@ vars:
 welcome_msg db 'GoldOS Text Editor 1.0', 0
 instructions_msg db 'Use ESC to quit without saving, F1 to save, and arrow keys to move', 0
 list db 'Edit existing file,Create new file', 0
+list_save db 'File saved successfully.', 0
 list_loc dw 0
 filename times 13 db 0
 txt_ext db 'TXT', 0
