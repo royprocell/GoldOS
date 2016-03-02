@@ -167,9 +167,6 @@ found_file:
 	jmp error_not_txt
 	
 ext_good:
-	;clears the segment 3000h before the file is loaded
-	call clear_segment
-
 	;reads the file to segment 3000h, offset 0000h
 	mov ax, 2000h
 	mov bx, filename
@@ -470,6 +467,9 @@ backspace:
 	jmp screen_setup
 	
 delete:
+	;if it's at the end of the file, don't do anything!
+	cmp byte [gs:si], 0
+	je input
 	;if the cursor is at the leftmost column, do nothing.
 	mov di, 3
 	int 0F1h
@@ -481,9 +481,7 @@ delete:
 	je .cr_found
 	;if any other character is found, just delete one character.
 	call move_text_backward
-	;if we delete the last character in the file, we need to move the cursor back!
-	cmp byte [gs:si], 0
-	je .deleted_eof
+	
 	mov di, 3
 	int 0F1h
 	mov byte [cursor_x], dl
@@ -512,11 +510,11 @@ delete:
 	jmp screen_setup
 
 up:
-	;if up is entered and it's the top of the screen, check if its the top of the file
+	;if up is entered and it's the top of the screen, decrement the skipped lines and render again unless skipped lines is zero
 	mov di, 3
 	int 0F1h
 	cmp dh, 2
-	je .is_top
+	je .at_top
 	
 	;if it isn't the top of the screen, it can't be the top of the file (hopefully!).
 	;therefore, we can find the second previous newline and mov si to that location.
@@ -527,31 +525,10 @@ up:
 	mov byte [decs_left], 2
 	jmp .go_up_two
 	
-.is_top:
-	;save the location in file
-	mov word [location], si
-	jmp .previous_newlines
-	
-	;if we hit si = 0 before encountering a newline character, we are on the first line of the file
-.previous_newlines_dont_exist:
-	mov di, 3
-	int 0F1h
-	mov dh, 2
-	mov dl, 0
-	mov di, 2
-	int 0F1h
-	jmp input
-	
-.previous_newlines:
-	cmp si, 0
-	je .previous_newlines_dont_exist
-	cmp byte [gs:si], 10
-	je .previous_newlines_exist
-	dec si
-	jmp .previous_newlines
-	
-.previous_newlines_exist:
-	mov si, word [location]
+.at_top:
+	;if the number of skip lines is zero, we are at the top of the file and need to ignore it.
+	cmp word [skip], 0
+	je input
 	;so it isn't the top of the file.
 	;but it is the top of the screen!
 	;therefore we need to decrement the skip lines and render again after finding our new location!
@@ -923,6 +900,17 @@ create_new_file:
 	
 	jc error_io
 	
+	;clear data from previous files
+	mov byte [cursor_x], 0
+	mov byte [cursor_y], 0
+	mov word [filesize], 0
+	mov word [skip], 0
+	mov word [location], 0
+	mov byte [decs_left], 0
+	mov si, 0
+	;make the first character zero so the render loop ignores any left over data
+	mov byte [gs:si], 0
+	
 	;jump straight into editing new file instead of main
 	jmp ext_good
 	
@@ -982,25 +970,6 @@ error_io:
 	
 exit:
 	retf
-	
-;clears the segment for the next file to use.
-clear_segment:
-	pusha
-	mov si, 0
-	mov cx, 32768
-
-.loop:
-	cmp cx, 0
-	je .done
-	mov word [gs:si], 0
-	inc si
-	inc si
-	dec cx
-	jmp .loop
-	
-.done:
-	popa
-	ret
 	
 vars:
 welcome_msg db 'GoldOS Text Editor 1.0', 0
