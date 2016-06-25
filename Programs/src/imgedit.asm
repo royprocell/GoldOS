@@ -27,23 +27,6 @@ main:
 	mov di, 3
 	int 0F5h
 	
-	;==============TEST CODE=================
-	
-	;mov di, 0
-	;mov al, 13h
-	;int 0F1h
-	
-	;jmp color
-	
-	;wait for key
-	;mov di, 0
-	;int 0F3h
-	
-	;return :-)
-	;retf
-	
-	;===========TEST CODE==============
-	
 	;draws a bar at the top two rows of the screen with the color 0x83 (aka dark grey background with cyan text)
 	mov bl, 0x83
 	mov dh, 0
@@ -85,6 +68,21 @@ main:
 	jmp main
 	
 edit_existing_file:
+	;set the video mode
+	mov di, 0
+	mov al, 3
+	int 0F1h
+	
+	;clear existing variables
+	mov ax, 0
+	mov word [pixel_x], ax
+	mov word [pixel_y], ax
+	mov word [img_width], ax
+	mov word [img_height], ax
+	mov byte [pixel_color], al
+	mov al, 1
+	mov byte [brush_toggle], al
+
 	mov bl, 0x70
 	mov di, 0xA
 	int 0F1h
@@ -158,7 +156,31 @@ found_file:
 	rep cmpsb
 	je read_pcx
 	
-	;jmp error_not_txt
+	jmp error_not_img
+	
+error_not_img:
+	mov di, 1
+	mov ax, 2000h
+	mov bx, error_not_img_msg
+	mov cx, welcome_msg
+	mov dh, 0
+	mov dl, 0
+	mov si, 0
+	int 0F8h
+	
+	jmp edit_existing_file
+	
+error_io:
+	mov di, 1
+	mov ax, 2000h
+	mov bx, error_io_msg
+	mov cx, welcome_msg
+	mov dh, 0
+	mov dl, 0
+	mov si, 0
+	int 0F8h
+	
+	jmp main
 	
 read_13h:
 	mov di, 0
@@ -176,7 +198,7 @@ read_13h:
 	mov di, 3
 	int 0F5h
 	
-	;jc error_io
+	jc error_io
 	
 	;saves the width and height of the image
 	mov si, 0
@@ -197,6 +219,14 @@ read_13h:
 	mov al, byte [gs:si]
 	mov byte [img_height], al
 	
+	;saves the size of the file for when we save it back to disk
+	mov di, 9
+	mov ax, 2000h
+	mov bx, filename
+	int 0F5h
+	
+	mov word [filesize], bx
+	
 render:
 	cmp byte [brush_toggle], 1
 	je .update
@@ -213,6 +243,17 @@ render:
 	mov bx, 0
 	mov si, 0
 	mov di, 7
+	int 0F2h
+	
+.add_cursor:	;displays a pixel where the cursor is, which is the logical not of the pixel color
+				;note: the cursor is only visual, and does not get saved.
+				;due to the weirdness of the vga palette, sometimes the cursor will not be visible.
+	mov cl, byte [pixel_color]
+	not cl
+	
+	mov di, 0
+	mov ax, word [pixel_x]
+	mov bx, word [pixel_y]
 	int 0F2h
 	
 input:
@@ -653,6 +694,34 @@ color:
 	jmp render
 	
 save:
+	pusha
+	;first we need to delete the original file
+	mov ax, 2000h
+	mov bx, filename
+	mov di, 5
+	int 0F5h
+	
+	;now we can save the file again
+	mov ax, 2000h
+	mov bx, filename
+	mov cx, 3000h
+	mov dx, 0
+	mov si, word [filesize]
+	mov di, 4
+	int 0F5h
+	jc error_io
+	popa
+	
+	mov di, 1
+	mov ax, 2000h
+	mov bx, list_save
+	mov cx, welcome_msg
+	mov dh, 0
+	mov dl, 0
+	mov si, 0
+	int 0F8h
+	
+	jmp edit_existing_file
 
 up:
 	;cmp word [pixel_x], 255
@@ -715,31 +784,161 @@ plot_pixel:	;accepts ax as pixel row, and bx as pixel column. called as a functi
 	
 read_pcx:
 	
+	
 create_new_file:
-
+	;first prompt for width of new image
+	mov di, 2
+	mov ax, width_subtitle
+	mov bl, 8
+	int 0F8h
+	
+	cmp ah, 0xFF
+	je main
+	
+	;convert string to number
+	
+	;if an error occurs, it is not a number
+	
+	;second prompt for height of new image
+	mov di, 2
+	mov ax, height_subtitle
+	mov bl, 8
+	int 0F8h
+	
+	cmp ah, 0xFF
+	je main
+	
 help:
+	;clear the screen
+	mov bl, 0x70
+	mov di, 0xA
+	int 0F1h
+
+	;draws header at the top
+	mov bl, 0x83
+	mov dh, 0
+	mov di, 0Ch
+	int 0F1h
+	mov dh, 1
+	int 0F1h
+	
+	;moves the cursor to 0,0 and writes the welcome and instruction strings
+	mov dx, 0
+	mov di, 02h
+	int 0F1h
+	mov ax, 2000h
+	mov ds, ax
+	mov si, welcome_msg
+	mov di, 0
+	int 0F4h
+
+	mov bl, 0x83
+	mov dh, 3
+	mov dl, 2
+	mov cx, 76
+	mov ax, 21
+	mov di, 0xE
+	int 0F1h
+	
+	mov bl, 0xF0
+	mov dh, 4
+	mov dl, 3
+	mov cx, 74
+	mov ax, 19
+	mov di, 0xE
+	int 0F1h
+	
+	mov dh, 3
+	mov dl, 2
+	mov di, 2
+	int 0F1h
+	
+	mov si, help_msg_0
+	mov di, 0
+	int 0F4h
+	
+	mov dh, 4
+	mov dl, 3
+	mov di, 2
+	int 0F1h
+	
+	mov si, help_msg
+	mov di, 0
+	int 0F4h
+	
+	mov di, 3
+	int 0F1h
+	
+	inc dh
+	inc dh
+	mov di, 2
+	int 0F1h
+	
+	mov si, help_msg_2
+	mov di, 0
+	int 0F4h
+	
+	mov di, 3
+	int 0F1h
+	
+	inc dh
+	mov di, 2
+	int 0F1h
+	
+	mov si, help_msg_3
+	mov di, 0
+	int 0F4h
+	
+	mov di, 3
+	int 0F1h
+	
+	add dh, 15
+	mov di, 2
+	int 0F1h
+	
+	mov si, back_msg
+	mov di, 0
+	int 0F4h
+	
+	mov di, 5
+	int 0F1h
+	
+	mov di, 0
+	int 0F3h
+	
+	mov di, 4
+	int 0F1h
+	
+	jmp main
 	
 exit:
 	retf
 	
 vars:
 welcome_msg db 'GoldOS Image Editor 1.0',0
+help_msg_0 db 'Image Editor Help', 0
 help_msg db 'You can edit .13H files and view .PCX files.', 0
 help_msg_2 db 'Use ESC to quit without saving, S to save, SPACE to toggle brush,',0
 help_msg_3 db 'C for color selection, and arrow keys to move.', 0
+back_msg db 'Press any key to go back.', 0
 list db 'Edit existing image,Create new image,Help', 0
+list_save db 'File saved successfully.'
 list_loc dw 0
 filename times 13 db 0
 ext_13h db '13H', 0
 pcx_ext db 'PCX', 0
 error_io_msg db 'A disk error occured. Unable to handle request.', 0
-error_not_txt_msg db 'Unable to open non-image file.', 0
+error_not_img_msg db 'Unable to open non-image file.', 0
 img_width dw 0
 img_height dw 0
 pixel_x dw 0
 pixel_y dw 0
 brush_toggle db 1;0
 pixel_color db 0
+filesize dw 0
+
+width_subtitle db 'Width of image?', 0
+height_subtitle db  'Height of image?', 0
 
 color_msg db 'Keys for common colors: (0 for black)', 0
 color_hex_prompt_msg db 'Press H for manual color selection.', 0

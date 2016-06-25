@@ -348,7 +348,7 @@ os_input_dialogue:
 	mov dh, 1
 	mov dl, 0
 	call os_move_cursor
-	mov si, word [.subtitle]
+	mov si, word .subtitle
 	call os_print_string
 	
 	mov bl, 0xF0

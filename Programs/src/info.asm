@@ -603,7 +603,7 @@ msg25 db 'While versions 1 and 2 were never finished, Roy hopes to finish this',
 msg26 db 'current version (Version 4) very soon.', 0
 msg27 db 'GoldOS was inspired by MikeOS, a 16 bit OS project by Mike Saunders.', 0
 msg28 db "GoldOS also inspired one of Roy's friends, Brian Kelley, to create GoldOS", 0
-msg29 db 'Version 3: a 32 bit operating system.', 0
+msg29 db 'Version 3: a 32 bit operating system. Now known as ObsidianOS.', 0
 msg2A db 'Useful operating system development websites:', 0
 msg2B db 'mikeos.sourceforge.net, wiki.osdev.org,', 0
 msg2C db "Ralph Brown's Interrupt List,", 0
