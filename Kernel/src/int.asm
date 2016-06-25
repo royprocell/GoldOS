@@ -323,7 +323,7 @@ intFAh_enter:
 intFBh_enter:
 	iret
 	
-;Unprogreammed extra interrupt 3
+;Unprogrammed extra interrupt 3
 intFCh_enter:
 	iret
 	

@@ -57,7 +57,7 @@ system_messages:
 system_files:
 	os_file_file db "FILEMNGRBIN",0
 	os_text_file db "TEXTEDITBIN",0
-	os_imge_file db "IMGEEDITBIN",0
+	os_imge_file db "IMGEDIT BIN",0
 	os_calc_file db "CALC    BIN",0
 	os_demo_file db "DEMO    BIN",0
 	os_info_file db "INFO    BIN",0

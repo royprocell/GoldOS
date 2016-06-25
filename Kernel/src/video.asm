@@ -516,6 +516,7 @@ os_draw_icon:
 	mov al, byte [.counter_backup]
 	mov byte [.counter], al
 	mov ax, word [.ax]
+	dec ax
 	jmp .loop
 	
 .done:
