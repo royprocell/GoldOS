@@ -39,6 +39,7 @@ main:
 	mov dx, 0
 	mov di, 02h
 	int 0F1h
+	
 	mov ax, 2000h
 	mov ds, ax
 	mov si, welcome_msg
@@ -283,6 +284,9 @@ input:
 	je left
 	cmp ah, 77
 	je right
+	;if b is pressed, bucket fill the color
+	cmp al, 'b'
+	je bucket_fill
 	;if an inappropriate key is pressed, jump back to input
 	jmp input
 	
@@ -768,6 +772,30 @@ right:
 	
 	inc word [pixel_x]
 	jmp render
+	
+bucket_fill:	;fills all pixels in the image that have the same color as the pixel where the cursor is with the currently selected color.
+	mov ax, word [pixel_x]
+	mov bx, word [pixel_y]
+	call get_pixel
+	
+	mov di, 2
+	mov bl, [pixel_color]
+	
+.loop:
+	cmp di, word [filesize]
+	je .done
+	cmp byte [gs:di], cl
+	je .change_color
+	inc di
+	jmp .loop
+	
+.change_color:
+	mov byte [gs:di], bl
+	inc di
+	jmp .loop
+	
+.done:
+	jmp render
 
 plot_pixel:	;accepts ax as pixel row, and bx as pixel column. called as a function.
 			;plot_pixel writes a pixel to the image file before it is rendered to the screen.
@@ -782,11 +810,26 @@ plot_pixel:	;accepts ax as pixel row, and bx as pixel column. called as a functi
 	mov byte [gs:di], cl
 	ret
 	
+get_pixel:	;accepts ax as pixel row, and bx as pixel column. called as a function.
+			;get_pixel returns the color of a pixel in the image file.
+	mov di, 0
+	xchg ax, bx
+	mov dx, word [img_width]
+	mul dx
+	add di, ax
+	add di, bx
+	add di, 2
+	mov cl, byte [gs:di]
+	ret
+	
 read_pcx:
 	
 	
 create_new_file:
-	;first prompt for width of new image
+	;prompt for file name
+	
+
+	;prompt for width of new image
 	mov di, 2
 	mov ax, width_subtitle
 	mov bl, 8
@@ -796,10 +839,16 @@ create_new_file:
 	je main
 	
 	;convert string to number
+	mov eax, 0
+	mov ax, bx
+	mov di, 5
+	int 0F4h
 	
 	;if an error occurs, it is not a number
 	
-	;second prompt for height of new image
+	mov word [img_width], bx
+	
+	;prompt for height of new image
 	mov di, 2
 	mov ax, height_subtitle
 	mov bl, 8
@@ -807,6 +856,35 @@ create_new_file:
 	
 	cmp ah, 0xFF
 	je main
+	
+	;convert string to number
+	mov eax, 0
+	mov ax, bx
+	mov di, 5
+	int 0F4h
+	
+	;if an error occurs, it is not a number
+	
+	mov word [img_height], bx
+	
+	;clears the segment where the file will go
+	;call clear_segment
+	
+	;insert the header
+	mov ax, word [img_width]
+	mov di, 0
+	mov word [gs:di], ax
+	mov bx, word [img_height]
+	mov di, 2
+	mov word [gs:di], bx
+	
+	;calculate the size of the file
+	mul bx
+	add ax, 2
+	mov word [filesize], ax
+	
+	;render the new file!
+	jmp render
 	
 help:
 	;clear the screen
@@ -892,7 +970,18 @@ help:
 	mov di, 3
 	int 0F1h
 	
-	add dh, 15
+	add dh, 2
+	mov di, 2
+	int 0F1h
+	
+	mov si, help_msg_4
+	mov di, 0
+	int 0F4h
+	
+	mov di, 3
+	int 0F1h
+	
+	add dh, 13
 	mov di, 2
 	int 0F1h
 	
@@ -919,7 +1008,8 @@ welcome_msg db 'GoldOS Image Editor 1.0',0
 help_msg_0 db 'Image Editor Help', 0
 help_msg db 'You can edit .13H files and view .PCX files.', 0
 help_msg_2 db 'Use ESC to quit without saving, S to save, SPACE to toggle brush,',0
-help_msg_3 db 'C for color selection, and arrow keys to move.', 0
+help_msg_3 db 'C for color selection, B to fill, and arrow keys to move.', 0
+help_msg_4 db 'For the fill command to work, the brush must be off.', 0
 back_msg db 'Press any key to go back.', 0
 list db 'Edit existing image,Create new image,Help', 0
 list_save db 'File saved successfully.'

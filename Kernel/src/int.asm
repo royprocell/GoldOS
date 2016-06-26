@@ -193,6 +193,8 @@ intF4h_enter:
 	iret
 .05:
 .06:
+	call os_int_to_string
+	iret
 .07:
 .08:
 .09:

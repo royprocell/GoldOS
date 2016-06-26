@@ -150,7 +150,7 @@
 system_descriptions:
 	os_file_desc 	db "File Manager:  ",0
 					db "Manage, browse,",0
-					db "and edit files ",0
+					db "and open files ",0
 					db "on your disk!  ",0
 					db "               ",0
 					db "               ",0
@@ -174,12 +174,12 @@ system_descriptions:
 					db "file and begin ",0
 					db "typing!        ",0
 					db "               ",0
-					db "Note:          ",0
-					db "To edit an     ",0
-					db "existing text  ",0
-					db "file, open it  ",0
-					db "through the    ",0
-					db "file manager.  ",0
+					db "Supports over  ",0
+					db "65,000         ",0
+					db "characters!    ",0
+					db "               ",0
+					db "               ",0
+					db "               ",0
 					db "               ",0
 					db "               ",0
 					db "               ",0
@@ -195,12 +195,12 @@ system_descriptions:
 					db "image file and ",0
 					db "start painting!",0
 					db "               ",0
-					db "Note:          ",0
-					db "To edit an     ",0
-					db "existing image ",0
-					db "file, open it  ",0
-					db "through the    ",0
-					db "file manager.  ",0
+					db "Supports 256   ",0
+					db "colors and up  ",0
+					db "to 256x256     ",0
+					db "pixels!        ",0
+					db "               ",0
+					db "               ",0
 					db "               ",0
 					db "               ",0
 					db "               ",0

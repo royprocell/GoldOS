@@ -115,3 +115,76 @@ os_string_length:
 ;IN: AX: segment of file name string, BX: offset of file name string
 ;OUT: CX: length of string
 ;==================
+os_string_to_int:
+
+;==================
+;os_int_to_string
+;Converts an integer into a decimal string
+;Integer must be four bytes long
+;IN: EAX: integer
+;OUT: AX: string location
+;==================
+os_int_to_string:
+	pusha
+	;mov dx, 0
+	;mov cx, 11
+	;mov di, .number
+	;rep stosb
+	
+	mov edx, 0
+	mov ebx, 10
+	mov cx, 9
+	
+.divide:	;divide eax by ebx, where the result is eax and the remainder is edx.
+	cmp cx, 0xFFFF
+	je .done
+	mov di, .number
+	add di, cx
+	div ebx
+	add dl, '0'
+	mov byte [ds:di], dl
+	mov edx, 0
+	dec cx
+	
+	cmp eax, 0
+	je .last_remainder
+	
+	jmp .divide
+	
+.last_remainder:
+	cmp edx, 0
+	je .done
+	
+	mov di, .number
+	add dl, '0'
+	mov byte [ds:di], dl
+	
+.done:
+	mov di, .string
+	mov si, .number
+	mov cx, 11
+	
+.loop:
+	cmp byte [ds:si], 0
+	je .move_up
+	jmp .copy
+	
+.move_up:
+	inc si
+	dec cx
+	jmp .loop
+	
+.copy:
+	lodsb
+	stosb
+	loop .copy
+	
+	mov byte [es:di], 0
+	
+	popa
+	mov ax, .string
+	ret
+	
+db 'NUMBER'
+.number times (11) db 0
+.string times (11) db 0
