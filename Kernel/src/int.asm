@@ -192,6 +192,8 @@ intF4h_enter:
 	call os_convert_string_lower
 	iret
 .05:
+	call os_string_to_int
+	iret
 .06:
 	call os_int_to_string
 	iret

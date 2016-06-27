@@ -90,12 +90,12 @@ os_convert_string_lower:
 ;==================
 os_string_length:
 	pusha
-	mov ds, ax
+	mov es, ax
 	mov si, bx
 	mov cx, 0
 	
 .count_loop:
-	cmp byte [ds:si], 0
+	cmp byte [es:si], 0
 	je .done
 	inc si
 	inc cx
@@ -111,11 +111,45 @@ os_string_length:
 
 ;==================
 ;os_string_to_int
-;Converts a string into 
-;IN: AX: segment of file name string, BX: offset of file name string
-;OUT: CX: length of string
+;Converts a decimal string into an integer
+;IN: AX: segment of integer string, BX: offset of integer string
+;OUT: EAX: integer
 ;==================
 os_string_to_int:
+	pusha
+	call os_string_length
+	add bx, cx
+	mov si, bx
+	dec si
+	mov word [.count], cx
+	mov es, ax
+	mov dword [.mult], 1
+	mov ebx, 0
+	
+.loop:
+	mov eax, 0
+	cmp word [.count], 0
+	je .done
+	mov al, byte [es:si]
+	sub al, '0'
+	mul dword [.mult]
+	add ebx, eax
+	mov eax, dword [.mult]
+	mov edx, 10
+	mul edx
+	mov dword [.mult], eax
+	dec word [.count]
+	dec si
+	jmp .loop
+	
+.done:
+	mov dword [.mult], ebx
+	popa
+	mov eax, dword [.mult]
+	ret
+	
+.mult dd 0
+.count dw 0
 
 ;==================
 ;os_int_to_string

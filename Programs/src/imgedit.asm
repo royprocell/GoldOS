@@ -183,6 +183,18 @@ error_io:
 	
 	jmp main
 	
+error_too_large:
+	mov di, 1
+	mov ax, 2000h
+	mov bx, error_too_large_msg
+	mov cx, welcome_msg
+	mov dh, 0
+	mov dl, 0
+	mov si, 0
+	int 0F8h
+	
+	jmp main
+	
 read_13h:
 	mov di, 0
 	mov al, 13h
@@ -716,6 +728,10 @@ save:
 	jc error_io
 	popa
 	
+	mov di, 0
+	mov al, 3
+	int 0F1h
+	
 	mov di, 1
 	mov ax, 2000h
 	mov bx, list_save
@@ -827,7 +843,83 @@ read_pcx:
 	
 create_new_file:
 	;prompt for file name
+	mov di, 2
+	mov ax, welcome_msg
+	mov bl, 8
+	int 0F8h
 	
+	cmp ah, 0xFF
+	je main
+	
+	;write spaces to filename_rename
+	mov al, ' '
+	mov di, filename
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	stosb
+	
+	;copy filename
+	mov si, bx
+	mov di, filename
+	lodsw
+	stosw
+	lodsw
+	stosw
+	lodsw
+	stosw
+	lodsw
+	stosw
+	
+	;copy extension
+	mov si, ext_13h
+	mov di, filename
+	add di, 8
+	lodsb
+	stosb
+	lodsb
+	stosb
+	lodsb
+	stosb
+	
+.replace_zeroes_setup:
+	mov si, filename
+	mov cx, 11
+	
+.replace_zeroes_loop:
+	cmp cx, 0
+	je .zeroes_replaced
+	cmp byte [ds:si], 0
+	je .zero_found
+	inc si
+	dec cx
+	jmp .replace_zeroes_loop
+	
+.zero_found:
+	mov al, ' '
+	mov byte [ds:si], al
+	inc si
+	dec cx
+	jmp .replace_zeroes_loop
+	
+.zeroes_replaced:
+	;clear the screen from input dialogue
+	mov bl, 0x70
+	mov di, 0xA
+	int 0F1h
+	mov bl, 0x83
+	mov dh, 0
+	mov di, 0Ch
+	int 0F1h
+	mov dh, 1
+	int 0F1h
 
 	;prompt for width of new image
 	mov di, 2
@@ -840,13 +932,18 @@ create_new_file:
 	
 	;convert string to number
 	mov eax, 0
-	mov ax, bx
+	mov ax, 2000h
 	mov di, 5
 	int 0F4h
 	
-	;if an error occurs, it is not a number
+	;if an error occurs, it is too large or not a number
+	cmp eax, 255
+	jg error_too_large
 	
-	mov word [img_width], bx
+	cmp eax, 0
+	je error_io
+	
+	mov word [img_width], ax
 	
 	;prompt for height of new image
 	mov di, 2
@@ -859,13 +956,15 @@ create_new_file:
 	
 	;convert string to number
 	mov eax, 0
-	mov ax, bx
+	mov ax, 2000h
 	mov di, 5
 	int 0F4h
 	
-	;if an error occurs, it is not a number
+	;if an error occurs, it is too large or not a number
+	cmp eax, 255
+	jg error_too_large
 	
-	mov word [img_height], bx
+	mov word [img_height], ax
 	
 	;clears the segment where the file will go
 	;call clear_segment
@@ -882,6 +981,25 @@ create_new_file:
 	mul bx
 	add ax, 2
 	mov word [filesize], ax
+	
+	;convert to uppercase
+	mov di, 3
+	mov ax, 2000h
+	mov si, filename
+	mov di, 3
+	int 0F4h
+
+	;create the file
+	mov ax, 2000h
+	mov bx, filename
+	mov di, 7
+	int 0F5h
+	
+	jc error_io	
+	
+	mov di, 0
+	mov al, 13h
+	int 0F1h
 	
 	;render the new file!
 	jmp render
@@ -1019,6 +1137,7 @@ ext_13h db '13H', 0
 pcx_ext db 'PCX', 0
 error_io_msg db 'A disk error occured. Unable to handle request.', 0
 error_not_img_msg db 'Unable to open non-image file.', 0
+error_too_large_msg db 'Error: dimensions too large!', 0
 img_width dw 0
 img_height dw 0
 pixel_x dw 0
