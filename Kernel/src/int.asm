@@ -297,6 +297,10 @@ intF8h_enter:
 	je .01
 	cmp di, 02h
 	je .02
+	cmp di, 03h
+	je .03
+	cmp di, 04h
+	je .04
 	stc
 	iret
 .00:
@@ -306,6 +310,12 @@ intF8h_enter:
 	iret
 .02:
 	call os_input_dialogue
+	iret
+.03:
+	call os_input_dialogue_equation
+	iret
+.04:
+	call os_input_dialogue_numbers
 	iret
 	
 ;System services

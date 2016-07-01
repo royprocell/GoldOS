@@ -160,10 +160,13 @@ os_string_to_int:
 ;==================
 os_int_to_string:
 	pusha
-	;mov dx, 0
-	;mov cx, 11
-	;mov di, .number
-	;rep stosb
+
+	pusha
+	mov cx, 11
+	mov di, .number
+	mov al, 0
+	rep stosb
+	popa
 	
 	mov edx, 0
 	mov ebx, 10
@@ -285,10 +288,13 @@ os_hex_to_int:
 ;==================
 os_int_to_hex:
 	pusha
-	;mov dx, 0
-	;mov cx, 11
-	;mov di, .number
-	;rep stosb
+
+	pusha
+	mov cx, 11
+	mov di, .number
+	mov al, 0
+	rep stosb
+	popa
 	
 	mov edx, 0
 	mov ebx, 16

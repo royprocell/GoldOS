@@ -972,7 +972,7 @@ exit:
 	retf
 	
 vars:
-welcome_msg db 'GoldOS Text Editor 1.0', 0
+welcome_msg db 'GoldOS Text Editor 1.4', 0
 instructions_msg db 'Use ESC to quit without saving, F1 to save, and arrow keys to move', 0
 list db 'Edit existing file,Create new file', 0
 list_save db 'File saved successfully.', 0

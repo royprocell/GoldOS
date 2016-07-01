@@ -181,7 +181,7 @@ exit:
 	retf
 	
 vars:
-welcome db 'GoldOS Settings 1.0', 0
+welcome db 'GoldOS Settings 1.1', 0
 title1 db 'Blinking text', 0
 list db 'Blinking text', 0
 msg11 db 'If you are running GoldOS on an older computer, it is likely that the', 0

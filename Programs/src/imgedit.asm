@@ -249,9 +249,28 @@ render:
 .add_cursor:	;displays a pixel where the cursor is, which is the logical not of the pixel color
 				;note: the cursor is only visual, and does not get saved.
 				;due to the weirdness of the vga palette, sometimes the cursor will not be visible.
-	mov cl, byte [pixel_color]
-	not cl
+	mov ax, word [pixel_x]
+	mov bx, word [pixel_y]
+	call get_pixel
 	
+	cmp cl, 0x68
+	jae .white_cursor
+	cmp cl, 0x1A
+	jae .black_cursor
+	cmp cl, 0x10
+	jae .white_cursor
+	cmp cl, 0x0A
+	jae .black_cursor
+	jmp .white_cursor
+	
+.black_cursor:
+	mov cl, 0
+	jmp .draw_cursor
+
+.white_cursor:
+	mov cl, 0x0F
+
+.draw_cursor:
 	mov di, 0
 	mov ax, word [pixel_x]
 	mov bx, word [pixel_y]
@@ -806,6 +825,7 @@ bucket_fill:	;fills all pixels in the image that have the same color as the pixe
 
 plot_pixel:	;accepts ax as pixel row, and bx as pixel column. called as a function.
 			;plot_pixel writes a pixel to the image file before it is rendered to the screen.
+	pusha
 	mov di, 0
 	xchg ax, bx
 	mov dx, word [img_width];320
@@ -815,10 +835,12 @@ plot_pixel:	;accepts ax as pixel row, and bx as pixel column. called as a functi
 	add di, 2	;2 is added to account for the offset created by the header in the image file
 	mov cl, byte [pixel_color]
 	mov byte [gs:di], cl
+	popa
 	ret
 	
 get_pixel:	;accepts ax as pixel row, and bx as pixel column. called as a function.
 			;get_pixel returns the color of a pixel in the image file.
+	pusha
 	mov di, 0
 	xchg ax, bx
 	mov dx, word [img_width]
@@ -827,7 +849,12 @@ get_pixel:	;accepts ax as pixel row, and bx as pixel column. called as a functio
 	add di, bx
 	add di, 2
 	mov cl, byte [gs:di]
+	mov byte [.tmp], cl
+	popa
+	mov cl, byte [.tmp]
 	ret
+
+.tmp db 0
 	
 create_new_file:
 	;prompt for file name
@@ -910,7 +937,7 @@ create_new_file:
 	int 0F1h
 
 	;prompt for width of new image
-	mov di, 2
+	mov di, 4
 	mov ax, width_subtitle
 	mov bl, 8
 	int 0F8h
@@ -934,7 +961,7 @@ create_new_file:
 	mov word [img_width], ax
 	
 	;prompt for height of new image
-	mov di, 2
+	mov di, 4
 	mov ax, height_subtitle
 	mov bl, 8
 	int 0F8h
@@ -1131,7 +1158,7 @@ clear_segment:
 	ret
 	
 vars:
-welcome_msg db 'GoldOS Image Editor 1.0',0
+welcome_msg db 'GoldOS Image Editor 1.1',0
 help_msg_0 db 'Image Editor Help', 0
 help_msg db 'You can edit and view .13H files.', 0
 help_msg_2 db 'Use ESC to quit without saving, S to save, SPACE to toggle brush,',0

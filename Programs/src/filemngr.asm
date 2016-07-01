@@ -548,7 +548,7 @@ cpp db 'CPP', 0
 selected_title dw 0
 	
 prgm_strings:
-welcome_msg db 'GoldOS File Manager 3.0 | ENTER = open, D = delete, C = create, R = rename      ', 0
+welcome_msg db 'GoldOS File Manager 3.1 | ENTER = open, D = delete, C = create, R = rename      ', 0
 welcome_error_msg db 'GoldOS File Manager 3.0 | Error! Press ENTER or ESCAPE to go back               ', 0
 welcome_input_msg db 'GoldOS File Manager 3.0 | Create a new file or rename an existing file          ', 0
 welcome_ext_msg db 'GoldOS File Manager 3.0 | Add an extension to your new file                     ', 0

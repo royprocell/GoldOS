@@ -446,3 +446,239 @@ os_input_dialogue:
 .subtitle db 'Input a string and press ENTER to confirm or ESCAPE to go back', 0
 .chars db 0
 .string times (81) db 0
+
+;==================
+;os_input_dialogue_equation
+;Lets the user input a string that consists of only numbers and arithmetic operation symbols.
+;IN: AX: title of menu, BL: number of characters allowed (80 max)
+;OUT: BX: offset of string location in kernel segment (2000h), AH: equals 0xFF if escape pressed
+;==================
+os_input_dialogue_equation:
+	mov word [.title], ax
+	mov byte [.chars], bl
+	cmp bl, 81
+	jae .cancel
+
+	mov bl, 0x70
+	call os_clear_screen
+	
+	;cleans the string location so that we don't have left-over junk from a previous string
+	call .clean_string
+
+	mov bl, 0x83
+	mov dh, 0
+	call os_draw_border
+	mov bl, 0x83
+	mov dh, 1
+	call os_draw_border
+	mov dx, 0
+	call os_move_cursor
+	mov si, word [.title]
+	call os_print_string
+	mov dh, 1
+	mov dl, 0
+	call os_move_cursor
+	mov si, word .subtitle
+	call os_print_string
+	
+	mov bl, 0xF0
+	mov dh, 3
+	mov dl, 1
+	mov cl, [.chars]
+	mov ax, 1
+	call os_draw_box
+	
+	mov cl, 0
+	mov di, .string
+	
+	call os_set_cursor_visible
+	call os_enable_blinking
+	
+.input_loop:
+	call os_wait_for_key
+	cmp al, 13
+	je .finished_typing
+	cmp al, 27
+	je .cancel
+	cmp al, 8
+	je .backspace
+	cmp cl, [.chars]
+	je .input_loop
+	cmp al, '+'
+	je .typing
+	cmp al, '-'
+	je .typing
+	cmp al, '*'
+	je .typing
+	cmp al, '/'
+	je .typing
+	cmp al, '^'
+	je .typing
+	cmp al, 47
+	jbe .input_loop
+	cmp al, 58
+	jae .input_loop
+	
+	jmp .typing
+	
+.typing:
+	cmp cl, [.chars]
+	je .input_loop
+	stosb
+	call os_print_char
+	inc cl
+	jmp .input_loop
+	
+.backspace:
+	cmp cl, 0
+	je .input_loop
+	mov al, 8
+	call os_print_char
+	mov al, 0
+	mov byte [es:di], al
+	mov al, 20h
+	call os_print_char
+	mov al, 8
+	call os_print_char
+	dec cl
+	dec di
+	jmp .input_loop
+	
+.finished_typing:
+	mov al, 0
+	stosb
+	mov bx, .string
+	call os_set_cursor_invisible
+	call os_disable_blinking
+	clc
+	ret
+
+.cancel:
+	stc
+	mov ah, 0xFF
+	ret
+
+.clean_string:
+	mov cx, 80
+	mov di, .string
+	mov al, 0
+	rep stosb
+	ret
+
+.title dw 0
+.subtitle db 'Enter an equation and press ENTER to confirm or ESC to go back', 0
+.chars db 0
+.string times (81) db 0
+
+;==================
+;os_input_dialogue_numbers
+;Lets the user input a string that consists of only numbers.
+;IN: AX: title of menu, BL: number of characters allowed (80 max)
+;OUT: BX: offset of string location in kernel segment (2000h), AH: equals 0xFF if escape pressed
+;==================
+os_input_dialogue_numbers:
+	mov word [.title], ax
+	mov byte [.chars], bl
+	cmp bl, 81
+	jae .cancel
+
+	mov bl, 0x70
+	call os_clear_screen
+	
+	;cleans the string location so that we don't have left-over junk from a previous string
+	call .clean_string
+
+	mov bl, 0x83
+	mov dh, 0
+	call os_draw_border
+	mov bl, 0x83
+	mov dh, 1
+	call os_draw_border
+	mov dx, 0
+	call os_move_cursor
+	mov si, word [.title]
+	call os_print_string
+	mov dh, 1
+	mov dl, 0
+	call os_move_cursor
+	mov si, word .subtitle
+	call os_print_string
+	
+	mov bl, 0xF0
+	mov dh, 3
+	mov dl, 1
+	mov cl, [.chars]
+	mov ax, 1
+	call os_draw_box
+	
+	mov cl, 0
+	mov di, .string
+	
+	call os_set_cursor_visible
+	call os_enable_blinking
+	
+.input_loop:
+	call os_wait_for_key
+	cmp al, 13
+	je .finished_typing
+	cmp al, 27
+	je .cancel
+	cmp al, 8
+	je .backspace
+	cmp cl, [.chars]
+	je .input_loop
+	cmp al, 47
+	jbe .input_loop
+	cmp al, 58
+	jae .input_loop
+	
+	jmp .typing
+	
+.typing:
+	cmp cl, [.chars]
+	je .input_loop
+	stosb
+	call os_print_char
+	inc cl
+	jmp .input_loop
+	
+.backspace:
+	cmp cl, 0
+	je .input_loop
+	mov al, 8
+	call os_print_char
+	mov al, 0
+	mov byte [es:di], al
+	mov al, 20h
+	call os_print_char
+	mov al, 8
+	call os_print_char
+	dec cl
+	dec di
+	jmp .input_loop
+	
+.finished_typing:
+	mov al, 0
+	stosb
+	mov bx, .string
+	call os_set_cursor_invisible
+	call os_disable_blinking
+	clc
+	ret
+
+.cancel:
+	stc
+	mov ah, 0xFF
+	ret
+
+.clean_string:
+	mov cx, 80
+	mov di, .string
+	mov al, 0
+	rep stosb
+	ret
+
+.title dw 0
+.subtitle db 'Enter a number and press ENTER to confirm or ESC to go back', 0
+.chars db 0
+.string times (81) db 0
