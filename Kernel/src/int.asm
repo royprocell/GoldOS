@@ -198,7 +198,11 @@ intF4h_enter:
 	call os_int_to_string
 	iret
 .07:
+	call os_hex_to_int
+	iret
 .08:
+	call os_int_to_hex
+	iret
 .09:
 .0A:
 .0B:

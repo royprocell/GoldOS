@@ -13,10 +13,10 @@
 ;Strings:
 ;os_convert_string_upper (done!)
 ;os_convert_string_lower (done!)
-;os_string_to_int
-;os_int_to_string
-;os_hex_to_ascii
-;os_ascii_to_hex
+;os_string_to_int (done!)
+;os_int_to_string (done!)
+;os_hex_to_int
+;os_int_to_hex
 ;os_string_length (done!)
 ;os_string_truncate
 ;os_string_copy
@@ -220,5 +220,139 @@ os_int_to_string:
 	ret
 	
 db 'NUMBER'
+.number times (11) db 0
+.string times (11) db 0
+
+;==================
+;os_hex_to_int
+;Converts a hex string into an integer
+;IN: AX: segment of hex string, BX: offset of hex string
+;OUT: EAX: integer
+;==================
+os_hex_to_int:
+	pusha
+	mov si, bx
+	call os_convert_string_upper
+	call os_string_length
+	add bx, cx
+	mov si, bx
+	dec si
+	mov word [.count], cx
+	mov es, ax
+	mov dword [.mult], 1
+	mov ebx, 0
+	
+.loop:
+	mov eax, 0
+	cmp word [.count], 0
+	je .done
+	mov al, byte [es:si]
+	
+	cmp al, 64
+	jg .hex_char
+	sub al, '0'
+	jmp .norm_char
+
+.hex_char:
+	sub al, '7'
+
+.norm_char:
+	mul dword [.mult]
+	add ebx, eax
+	mov eax, dword [.mult]
+	mov edx, 16
+	mul edx
+	mov dword [.mult], eax
+	dec word [.count]
+	dec si
+	jmp .loop
+	
+.done:
+	mov dword [.mult], ebx
+	popa
+	mov eax, dword [.mult]
+	ret
+	
+.mult dd 0
+.count dw 0
+
+;==================
+;os_int_to_hex
+;Converts an integer into a hex string
+;Integer must be four bytes long
+;IN: EAX: integer
+;OUT: AX: string location
+;==================
+os_int_to_hex:
+	pusha
+	;mov dx, 0
+	;mov cx, 11
+	;mov di, .number
+	;rep stosb
+	
+	mov edx, 0
+	mov ebx, 16
+	mov cx, 9
+	
+.divide:	;divide eax by ebx, where the result is eax and the remainder is edx.
+	cmp cx, 0xFFFF
+	je .done
+	mov di, .number
+	add di, cx
+	div ebx
+	
+	cmp dl, 9
+	jg .hex_char
+	add dl, '0'
+	jmp .norm_char
+	
+.hex_char:
+	add dl, '7'
+	
+.norm_char:
+	mov byte [ds:di], dl
+	mov edx, 0
+	dec cx
+	
+	cmp eax, 0
+	je .last_remainder
+	
+	jmp .divide
+	
+.last_remainder:
+	cmp edx, 0
+	je .done
+	
+	mov di, .number
+	add dl, '0'
+	mov byte [ds:di], dl
+	
+.done:
+	mov di, .string
+	mov si, .number
+	mov cx, 11
+	
+.loop:
+	cmp byte [ds:si], 0
+	je .move_up
+	jmp .copy
+	
+.move_up:
+	inc si
+	dec cx
+	jmp .loop
+	
+.copy:
+	lodsb
+	stosb
+	loop .copy
+	
+	mov byte [es:di], 0
+	
+	popa
+	mov ax, .string
+	ret
+	
+db 'NUMBERHEX'
 .number times (11) db 0
 .string times (11) db 0

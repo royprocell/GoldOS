@@ -81,8 +81,10 @@ edit_existing_file:
 	mov word [img_width], ax
 	mov word [img_height], ax
 	mov byte [pixel_color], al
-	mov al, 1
 	mov byte [brush_toggle], al
+	
+	;clear last image from segment 3000h
+	call clear_segment
 
 	mov bl, 0x70
 	mov di, 0xA
@@ -150,13 +152,6 @@ found_file:
 	rep cmpsb
 	je read_13h
 	
-	mov cx, 3
-	mov si, filename
-	add si, 8
-	mov di, pcx_ext
-	rep cmpsb
-	je read_pcx
-	
 	jmp error_not_img
 	
 error_not_img:
@@ -200,9 +195,6 @@ read_13h:
 	mov al, 13h
 	int 0F1h
 
-	;clears the segment 3000h before the file is loaded
-	;call clear_segment
-
 	;reads the file to segment 3000h, offset 0000h
 	mov ax, 2000h
 	mov bx, filename
@@ -215,20 +207,11 @@ read_13h:
 	
 	;saves the width and height of the image
 	mov si, 0
-	;cmp word [gs:si], 0
-	;je new_13h_file
-	;cmp word [gs:si], 320
-	;ja error_too_large
-	;mov ax, word [gs:si]
-	;mov word [img_width], ax
+
 	mov al, byte [gs:si]
 	mov byte [img_width], al
 	inc si
-	;inc si
-	;cmp word [gs:si], 200
-	;ja error_too_large
-	;mov ax, word [gs:si]
-	;mov word [img_height], ax
+
 	mov al, byte [gs:si]
 	mov byte [img_height], al
 	
@@ -241,6 +224,11 @@ read_13h:
 	mov word [filesize], bx
 	
 render:
+	;clear the screen
+	mov di, 2
+	mov bl, 0
+	int 0F2h
+
 	cmp byte [brush_toggle], 1
 	je .update
 	jmp .draw
@@ -574,8 +562,6 @@ color:
 .typing:
 	cmp byte [color_hex_counter], 2
 	je .hex_input
-	;cannot use stosb, because di is set to zero for the keyboard interrupt!
-	;stosb
 	cmp byte [color_hex_counter], 0
 	je .zero_count
 	mov byte [color_hex_chars+1], al
@@ -601,8 +587,7 @@ color:
 	mov bl, 43
 	int 0F4h
 	mov al, 0
-	;once again, we cannot use di to set the chars for the color, it is used by the interrupts!
-	;mov byte [es:di], al
+
 	cmp byte [color_hex_counter], 0
 	je .zero_count_back
 	mov byte [color_hex_chars+1], al
@@ -626,7 +611,16 @@ color:
 	cmp byte [color_hex_counter], 2
 	jne .hex_input
 	;convert hex chars to hex numbers
+	mov di, 7
+	mov ax, 2000h
+	mov bx, color_hex_chars
+	int 0F4h
 	;set pixel_color to the output of that function
+	mov byte [pixel_color], al
+	;reset counter
+	mov ax, 0
+	mov byte [color_hex_counter], al
+
 	jmp render
 	
 .zero:	;black
@@ -710,7 +704,7 @@ color:
 	jmp render
 	
 save:
-	pusha
+	pusha	
 	;first we need to delete the original file
 	mov ax, 2000h
 	mov bx, filename
@@ -744,9 +738,6 @@ save:
 	jmp edit_existing_file
 
 up:
-	;cmp word [pixel_x], 255
-	;je input
-	
 	;if we are at zero for y, don't try to go above the screen
 	cmp word [pixel_y], 0
 	je input
@@ -837,9 +828,6 @@ get_pixel:	;accepts ax as pixel row, and bx as pixel column. called as a functio
 	add di, 2
 	mov cl, byte [gs:di]
 	ret
-	
-read_pcx:
-	
 	
 create_new_file:
 	;prompt for file name
@@ -936,12 +924,12 @@ create_new_file:
 	mov di, 5
 	int 0F4h
 	
-	;if an error occurs, it is too large or not a number
+	;if an error occurs, it is too large or not a number or zero
 	cmp eax, 255
 	jg error_too_large
 	
 	cmp eax, 0
-	je error_io
+	je error_too_large
 	
 	mov word [img_width], ax
 	
@@ -960,21 +948,24 @@ create_new_file:
 	mov di, 5
 	int 0F4h
 	
-	;if an error occurs, it is too large or not a number
+	;if an error occurs, it is too large or not a number or zero
 	cmp eax, 255
 	jg error_too_large
+	
+	cmp eax, 0
+	je error_too_large
 	
 	mov word [img_height], ax
 	
 	;clears the segment where the file will go
-	;call clear_segment
+	call clear_segment
 	
 	;insert the header
 	mov ax, word [img_width]
 	mov di, 0
 	mov word [gs:di], ax
 	mov bx, word [img_height]
-	mov di, 2
+	inc di
 	mov word [gs:di], bx
 	
 	;calculate the size of the file
@@ -1121,28 +1112,45 @@ help:
 exit:
 	retf
 	
+clear_segment:
+	pusha
+	mov si, 0
+	mov cx, 32768
+	
+.loop:
+	cmp cx, 0
+	je .done
+	mov word [gs:si], 0
+	inc si
+	inc si
+	dec cx
+	jmp .loop
+	
+.done:
+	popa
+	ret
+	
 vars:
 welcome_msg db 'GoldOS Image Editor 1.0',0
 help_msg_0 db 'Image Editor Help', 0
-help_msg db 'You can edit .13H files and view .PCX files.', 0
+help_msg db 'You can edit and view .13H files.', 0
 help_msg_2 db 'Use ESC to quit without saving, S to save, SPACE to toggle brush,',0
 help_msg_3 db 'C for color selection, B to fill, and arrow keys to move.', 0
 help_msg_4 db 'For the fill command to work, the brush must be off.', 0
 back_msg db 'Press any key to go back.', 0
 list db 'Edit existing image,Create new image,Help', 0
-list_save db 'File saved successfully.'
+list_save db 'File saved successfully.', 0
 list_loc dw 0
 filename times 13 db 0
 ext_13h db '13H', 0
-pcx_ext db 'PCX', 0
 error_io_msg db 'A disk error occured. Unable to handle request.', 0
 error_not_img_msg db 'Unable to open non-image file.', 0
-error_too_large_msg db 'Error: dimensions too large!', 0
+error_too_large_msg db 'Error: dimensions incorrect!', 0
 img_width dw 0
 img_height dw 0
 pixel_x dw 0
 pixel_y dw 0
-brush_toggle db 1;0
+brush_toggle db 0
 pixel_color db 0
 filesize dw 0
 
