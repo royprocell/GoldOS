@@ -95,6 +95,25 @@ interrupt_setup:
 	inc si
 	inc si
 	mov word [gs:si], bx
+	
+	;program int 1Bh
+	mov si, 0x6C
+	mov ax, int1Bh_enter
+	mov bx, 2000h
+	mov word [gs:si], ax
+	inc si
+	inc si
+	mov word [gs:si], bx
+	
+	;program int 05h
+	mov si, 20
+	mov ax, int05h_enter
+	mov bx, 2000h
+	mov word [gs:si], ax
+	inc si
+	inc si
+	mov word [gs:si], bx
+	
 	sti
 	
 program_setup:

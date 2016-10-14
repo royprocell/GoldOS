@@ -91,6 +91,23 @@
 	db				07h,0xC6,0xC6,0xC6,0Fh,0Fh,0Fh,6Ah,6Ah,6Ah,00h,11h,12h,13h,14h,07h,
 	db				07h,0xC6,0xC6,0xC6,0Fh,0Fh,0Fh,6Ah,6Ah,6Ah,00h,11h,12h,13h,14h,07h,
 	db				07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,
+	;opens the CLI
+	os_cmnd_icon db 07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,
+	db				07h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,0Fh,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,0Fh,0Fh,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,00h,0Fh,0Fh,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,00h,0Fh,0Fh,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,0Fh,0Fh,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,0Fh,00h,00h,00h,0Fh,0Fh,0Fh,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,00h,07h,
+	db				07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,07h,
 	;executes a program with details about GoldOS
 	os_info_icon db 00h,7Dh,7Dh,7Dh,7Dh,7Dh,7Dh,7Dh,7Dh,7Dh,7Dh,7Dh,7Dh,7Dh,7Dh,00h,
 	db				7Dh,7Dh,7Dh,7Dh,7Dh,0Fh,0Fh,0Fh,0Fh,0Fh,0Fh,7Dh,7Dh,7Dh,7Dh,7Dh,
@@ -248,6 +265,27 @@ system_descriptions:
 					db "system and     ",0
 					db "require a      ",0
 					db "manual reboot! ",0
+					db "               ",0
+					db "               ",0
+					db "               ",0
+					db "               ",0
+					db "               ",0
+	os_cmnd_desc	db "Command Line:  ",0
+					db "Perform tasks  ",0
+					db "through a      ",0
+					db "simple and     ",0
+					db "familiar CLI!  ",0
+					db "               ",0
+					db "Use the 'help' ",0
+					db "command to see ",0
+					db "a list of      ",0
+					db "avaliable      ",0
+					db "commands!      ",0
+					db "               ",0
+					db "               ",0
+					db "               ",0
+					db "               ",0
+					db "               ",0
 					db "               ",0
 					db "               ",0
 					db "               ",0

@@ -15,13 +15,18 @@
 ;os_convert_string_lower (done!)
 ;os_string_to_int (done!)
 ;os_int_to_string (done!)
-;os_hex_to_int
-;os_int_to_hex
+;os_hex_to_int (done!)
+;os_int_to_hex (done!)
 ;os_string_length (done!)
 ;os_string_truncate
 ;os_string_copy
 ;os_print_registers
 ;os_print_time
+;os_print_date
+;
+;os_strcat
+;os_strchr
+;os_strcmp
 ;==============================
 
 ;==================

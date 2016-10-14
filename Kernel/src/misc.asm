@@ -682,3 +682,126 @@ os_input_dialogue_numbers:
 .subtitle db 'Enter a number and press ENTER to confirm or ESC to go back', 0
 .chars db 0
 .string times (81) db 0
+
+;==================
+;os_print_cpuid
+;Prints some basic cpu information including manufacturer, model, and clock speed.
+;IN: NOTHING
+;OUT: NOTHING
+;==================
+os_print_cpuid:
+	pusha
+	mov eax, 0x80000002
+	cpuid
+	
+	mov si, .eax
+	mov dword [.eax], eax
+	call os_print_string
+	mov eax, ebx
+	mov dword [.eax], eax
+	call os_print_string
+	mov eax, ecx
+	mov dword [.eax], eax
+	call os_print_string
+	mov eax, edx
+	mov dword [.eax], eax
+	call os_print_string
+	
+	mov eax, 0x80000003
+	cpuid
+	
+	mov si, .eax
+	mov dword [.eax], eax
+	call os_print_string
+	mov eax, ebx
+	mov dword [.eax], eax
+	call os_print_string
+	mov eax, ecx
+	mov dword [.eax], eax
+	call os_print_string
+	mov eax, edx
+	mov dword [.eax], eax
+	call os_print_string
+	
+	mov eax, 0x80000004
+	cpuid
+	
+	mov si, .eax
+	mov dword [.eax], eax
+	call os_print_string
+	mov eax, ebx
+	mov dword [.eax], eax
+	call os_print_string
+	mov eax, ecx
+	mov dword [.eax], eax
+	call os_print_string
+	mov eax, edx
+	mov dword [.eax], eax
+	call os_print_string
+	popa
+	
+	ret
+	
+.eax times (9) db 0
+
+;==================
+;os_print_conventional_memory
+;Prints the conventional memory size and stores it in AX.
+;IN: NOTHING
+;OUT: AX: number of kilobytes in conventional memory
+;==================
+os_print_conventional_memory:
+	pusha
+	mov eax, 0
+	int 12h
+	call os_int_to_string
+	mov si, ax
+	call os_print_string
+	mov al, 'k'
+	call os_print_char
+	mov al, 'b'
+	call os_print_char
+	mov word [.ax], ax
+	popa
+	mov ax, word [.ax]
+	ret
+	
+.ax dw 0
+
+;==================
+;os_print_total_memory
+;Prints the total memory size and stores it in AX.
+;IN: NOTHING
+;OUT: AX: number of kilobytes in conventional memory
+;==================
+os_print_total_memory:
+	pusha
+	mov eax, 0
+	int 12h
+	mov word [.conv_mem], ax
+	
+	mov ax, 0xE801
+	int 15h
+	
+	mov si, word [.conv_mem]
+	add si, ax
+	
+	mov dx, 0
+	mov ax, 64
+	mul bx
+	add si, ax
+	
+	mov eax, 0
+	mov ax, si
+	
+	call os_int_to_string
+	mov si, ax
+	call os_print_string
+	mov al, 'k'
+	call os_print_char
+	mov al, 'b'
+	call os_print_char
+	popa
+	ret
+	
+.conv_mem dw 0

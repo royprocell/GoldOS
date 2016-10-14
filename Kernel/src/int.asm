@@ -283,6 +283,67 @@ intF5h_enter:
 	
 ;Math services
 intF6h_enter:
+	cmp di, 00h	;reserved [add]
+	je .00
+	cmp di, 01h	;reserved [sub]
+	je .01
+	cmp di, 02h	;reserved [mul]
+	je .02
+	cmp di, 03h	;reserved [div]
+	je .03
+	cmp di, 04h	;reserved [exp]
+	je .04
+	cmp di, 05h	;reserved [factorial]
+	je .05
+	cmp di, 06h	;reserved []
+	je .06
+	cmp di, 07h	;reserved []
+	je .07
+	cmp di, 08h	;reserved []
+	je .08
+	cmp di, 09h	;reserved []
+	je .09
+	cmp di, 0Ah	;initialize x87 fpu
+	je .0A
+	cmp di, 0Bh	;push to x87 fpu
+	je .0B
+	cmp di, 0Ch	;pop from x87 fpu
+	je .0C
+	cmp di, 0Dh	;x87 fpu convert float to int
+	je .0D
+	cmp di, 0Eh	;x87 fpu sin
+	je .0E
+	cmp di, 0Fh	;x87 fpu cos
+	je .0F
+	
+	
+.00:
+.01:
+.02:
+.03:
+.04:
+.05:
+.06:
+.07:
+.08:
+.09:
+.0A:
+.0B:
+.0C:
+.0D:
+.0E:
+.0F:
+	;log
+	;ln
+	;sqrt
+	;
+	;asin
+	;acos
+	;tan
+	;atan
+	;return pi
+	;return e
+	
 	iret
 	
 ;Extra interrupt 1
@@ -301,6 +362,8 @@ intF8h_enter:
 	je .03
 	cmp di, 04h
 	je .04
+	cmp di, 05h
+	je .05
 	stc
 	iret
 .00:
@@ -317,12 +380,24 @@ intF8h_enter:
 .04:
 	call os_input_dialogue_numbers
 	iret
+.05:
+	call os_wait
+	iret
+.06:
+	;call os_random
+	iret
 	
 ;System services
 ;Not to be called often!
 intF9h_enter:
 	cmp di, 00h
 	je .00
+	cmp di, 01h
+	je .01
+	cmp di, 02h
+	je .02
+	cmp di, 03h
+	je .03
 	stc
 	iret
 	
@@ -331,6 +406,15 @@ intF9h_enter:
 .00:
 	mov ax, os_gfx_var
 	mov dx, os_disk_num
+	iret	
+.01:
+	call os_print_cpuid
+	iret
+.02:
+	call os_print_conventional_memory
+	iret
+.03:
+	call os_print_total_memory
 	iret
 
 ;Unprogrammed extra interrupt 1
@@ -348,3 +432,50 @@ intFCh_enter:
 ;Unprogrammed extra interrupt 4
 intFDh_enter:
 	iret
+	
+;System Reset Interrupt
+;Called by int 09h when Ctrl-Break has been pressed.
+;Good for escaping infinite loops and other errors
+;Does not work in VirtualBox!
+int1Bh_enter:
+	int 19h
+	
+;Memory Dump Interrupt
+;Called by int 09h when PrtSc is pressed.
+;Good for debugging
+;Does not work in VirtualBox!
+int05h_enter:
+	mov ax, 2000h
+	mov bx, .filename1
+	call fat_file_delete
+	
+	clc
+	
+	mov ax, 2000h
+	mov bx, .filename2
+	call fat_file_delete
+	
+	clc
+	
+	mov ax, 2000h
+	mov bx, .filename1
+	mov cx, 2000h
+	mov dx, 0
+	mov si, 0xFFFF
+	call fat_file_write
+	
+	clc
+	
+	mov ax, 2000h
+	mov bx, .filename2
+	mov cx, 3000h
+	mov dx, 0
+	mov si, 0xFFFF
+	call fat_file_write
+	
+	clc
+	
+	int 19h
+	
+.filename1 db '2000    DMP', 0
+.filename2 db '3000    DMP', 0
