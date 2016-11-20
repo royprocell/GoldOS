@@ -18,15 +18,16 @@
 ;os_hex_to_int (done!)
 ;os_int_to_hex (done!)
 ;os_string_length (done!)
-;os_string_truncate
-;os_string_copy
-;os_print_registers
-;os_print_time
-;os_print_date
+;os_string_truncate (done, untested!)
+;os_string_copy (done, untested!)
+;os_string_copy_num (done, untested!)
+;os_print_registers (done!)
+;os_print_time (done!)
+;os_print_date (done!)
 ;
-;os_strcat
-;os_strchr
-;os_strcmp
+;os_strcat (done, untested!)
+;os_strchr (done, untested!)
+;os_strcmp (done, untested!)
 ;==============================
 
 ;==================
@@ -367,3 +368,526 @@ os_int_to_hex:
 db 'NUMBERHEX'
 .number times (11) db 0
 .string times (11) db 0
+
+;==================
+;os_strcmp
+;Compares two strings to see if they are equal
+;IN: AX: segment of string 1, BX: location of string 1, CX: segment of string 2, DX: location of string 2
+;OUT: Nothing, Carry Flag set on failure
+;==================
+os_strcmp:
+	mov word [.name1], bx
+	mov word [.name2], dx
+	mov ds, ax
+	mov es, cx
+	
+.setup:
+	mov cx, 1
+	mov ax, 0
+	mov dx, 0
+	mov di, [.name2]
+	
+.search_loop:
+	xchg cx, dx
+	mov cx, 11
+	mov si, word [.name1]
+	rep cmpsb
+	je .found
+	add ax, 32
+	mov di, fs_buffer
+	add di, ax
+	xchg dx, cx
+	loop .search_loop
+	stc
+	ret
+	
+.found:
+	clc
+	sub di, 11
+	ret
+	
+.name1 dw 0
+.name2 dw 0
+
+;==================
+;os_strcat
+;Concatenates two strings. Only up to 256 chars!
+;IN: AX: segment of string 1, BX: offset of string 1, CX: segment of string 2, DX: offset of string 2
+;OUT: AX: segment of new string, BX: location of new string
+;==================
+os_strcat:
+	pusha
+	call os_string_length
+	mov word [.string1_length], cx
+	popa
+	
+	pusha
+	mov cx, 2000h
+	mov dx, .new_string
+	call os_string_copy
+	popa
+	
+	mov si, 256
+	sub si, word [.string1_length]
+	
+	mov ax, cx
+	mov bx, dx
+	mov cx, 2000h
+	mov dx, word [.string1_length]
+	add dx, si
+	
+	call os_string_copy_num
+	
+	ret
+	
+.string1 dw 0
+.string2 dw 0
+.new_string times 257 db 0
+.string1_length dw 0
+
+;==================
+;os_string_copy
+;Copies one string into another.
+;User is responsible for providing adequate space to copy.
+;IN: AX: segment of string, BX: offset of string, CX: segment of string copy, DX: offset of string copy
+;OUT: AX: segment of copied string, BX: location of end of copied string
+;==================
+os_string_copy:
+	pusha
+	;prepare segments to copy
+	mov ds, ax
+	mov es, cx
+	
+	;prepare source and destination indexes
+	mov si, bx
+	mov di, dx
+	;clear dl, we will use it
+	mov dl, 0
+	
+.copy_loop:
+	mov dl, byte [ds:si]
+	mov byte [es:di], dl
+	cmp dl, 0
+	je .done
+	inc si
+	inc di
+	jmp .copy_loop
+	
+.done:
+	mov word [.ax], cx
+	mov word[.bx], di
+	popa
+	mov ax, word [.ax]
+	mov bx, word [.bx]
+	ret
+	
+.ax dw 0
+.bx dw 0
+
+;==================
+;os_string_copy_num
+;Copies a number of chars from one string into another.
+;User is responsible for providing adequate space to copy.
+;IN: AX: segment of string, BX: offset of string, CX: segment of string copy, DX: offset of string copy, SI: number to copy
+;OUT: AX: segment of copied string, BX: location of end of copied string
+;==================
+os_string_copy_num:
+	pusha
+	;prepare segments to copy
+	mov ds, ax
+	mov es, cx
+	
+	;save count
+	mov word [.count], si
+	
+	;prepare source and destination indexes
+	mov si, bx
+	mov di, dx
+	;clear dl, we will use it
+	mov dl, 0
+	;set cx, looping variable
+	mov cx, word [.count]
+	
+.copy_loop:
+	mov dl, byte [ds:si]
+	mov byte [es:di], dl
+	cmp dl, 0
+	je .done
+	inc si
+	inc di
+	loop .copy_loop
+	
+.done:
+	mov word [.ax], cx
+	mov word[.bx], di
+	popa
+	mov ax, word [.ax]
+	mov bx, word [.bx]
+	ret
+	
+.ax dw 0
+.bx dw 0
+.count dw 0
+
+;==================
+;os_string_truncate
+;Chops off part of a string.
+;Does not work if chars to keep is longer than string itself
+;IN: AX: segment of string, BX: location of string, CX: number of chars to keep
+;OUT: Nothing
+;==================
+os_string_truncate:
+	pusha
+	mov es, ax
+	mov si, bx
+	add si, cx
+	mov dl, 0
+	mov byte [es:si], dl
+	popa
+	ret
+	
+;==================
+;os_strchr
+;Finds the first occurrance of a char.
+;Does not work if chars to keep is longer than string itself
+;IN: AX: segment of string, BX: location of string, CL: char to find
+;OUT: AX: segment of first occurrance, BX: location of first occurrance. Carry Flag set if not found.
+;==================
+os_strchr:
+	mov es, ax
+	mov si, bx
+	
+.search_loop:
+	cmp byte [es:si], 0
+	je .not_found
+	cmp byte [es:si], cl
+	je .found
+	inc si
+	jmp .search_loop
+	
+.found:
+	mov bx, si
+	clc
+	ret
+	
+.not_found:
+	stc
+	ret
+	
+;==================
+;os_print_registers
+;Prints the values of all registers at the time of calling.
+;IN: Nothing
+;OUT: Nothing
+;==================
+os_print_registers:
+	mov word [.cs], cs
+	mov word [.ds], ds
+	mov word [.es], es
+	mov word [.fs], fs
+	mov word [.gs], gs
+	
+	mov word [.ax], ax
+	mov word [.bx], bx
+	mov word [.cx], cx
+	mov word [.dx], dx
+	mov word [.si], si
+	mov word [.di], di
+
+	mov word [.sp], sp
+	mov word [.bp], bp
+	
+	mov ax, 2000h
+	mov ds, ax
+	
+	mov eax, 0
+	
+	mov si, .r
+	call os_print_string
+	call os_print_new_line
+	
+	mov si, .css
+	call os_print_string
+	mov ax, word [.cs]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	mov si, .dss
+	call os_print_string
+	mov ax, word [.ds]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	mov si, .ess
+	call os_print_string
+	mov ax, word [.es]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	mov si, .fss
+	call os_print_string
+	mov ax, word [.fs]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	mov si, .gss
+	call os_print_string
+	mov ax, word [.gs]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	call os_print_new_line
+	
+	mov si, .axs
+	call os_print_string
+	mov ax, word [.ax]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	mov si, .bxs
+	call os_print_string
+	mov ax, word [.bx]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	mov si, .cxs
+	call os_print_string
+	mov ax, word [.cx]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	mov si, .dxs
+	call os_print_string
+	mov ax, word [.dx]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	mov si, .sis
+	call os_print_string
+	mov ax, word [.si]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	mov si, .dis
+	call os_print_string
+	mov ax, word [.di]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	call os_print_new_line
+	
+	mov si, .sps
+	call os_print_string
+	mov ax, word [.sp]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	mov si, .bps
+	call os_print_string
+	mov ax, word [.bp]
+	call os_int_to_hex
+	mov si, ax
+	call os_print_string
+	
+	call os_print_new_line
+	
+	ret
+	
+.cs dw 0
+.ds dw 0
+.es dw 0
+.fs dw 0
+.gs dw 0
+
+.ax dw 0
+.bx dw 0
+.cx dw 0
+.dx dw 0
+.si dw 0
+.di dw 0
+
+.sp dw 0
+.bp dw 0
+
+.css db "CS: ", 0
+.dss db " DS: ", 0
+.ess db " ES: ", 0
+.fss db " FS: ", 0
+.gss db " GS: ", 0
+
+.r db "Register Values:", 0
+.axs db "AX: ", 0
+.bxs db " BX: ", 0
+.cxs db " CX: ", 0
+.dxs db " DX: ", 0
+.sis db " SI: ", 0
+.dis db " DI: ", 0
+
+.sps db "SP: ", 0
+.bps db " BP: ", 0
+
+;==================
+;os_print_time
+;Prints the current time.
+;IN: Nothing
+;OUT: Nothing
+;==================
+os_print_time:
+	mov ah, 2
+	int 1Ah
+	
+	mov ax, 2000h
+	mov ds, ax
+	
+	mov si, .time
+	call os_print_string
+	
+	;ch is hour, cl is mins, dh is sec, dl is savings
+	mov eax, 0
+	mov al, ch
+	call os_bcd_to_int
+	call os_int_to_string
+	mov si, ax
+	call os_print_string
+	
+	mov al, 58
+	call os_print_char
+	
+	cmp cl, 9
+	jae .continue_min
+	
+	mov al, '0'
+	call os_print_char
+	
+.continue_min:
+	mov eax, 0
+	mov al, cl
+	call os_bcd_to_int
+	call os_int_to_string
+	mov si, ax
+	call os_print_string
+	
+	mov al, 58
+	call os_print_char
+	
+	cmp dh, 9
+	jae .continue_sec
+	
+	mov al, '0'
+	call os_print_char
+	
+.continue_sec:
+	mov eax, 0
+	mov al, dh
+	call os_bcd_to_int
+	call os_int_to_string
+	mov si, ax
+	call os_print_string
+	
+	call os_print_new_line
+	
+	ret
+	
+.time db "Time (H:M:S): ", 0
+
+;==================
+;os_print_date
+;Prints the current date.
+;IN: Nothing
+;OUT: Nothing
+;==================
+os_print_date:
+	mov ah, 4
+	int 1Ah
+	
+	mov ax, 2000h
+	mov ds, ax
+	
+	mov si, .date
+	call os_print_string
+	
+	;ch = century
+	;cl = year
+	;dh = month
+	;dl = day
+	
+	mov eax, 0
+	mov al, dh
+	call os_bcd_to_int
+	call os_int_to_string
+	mov si, ax
+	call os_print_string
+	
+	mov al, '/'
+	call os_print_char
+	
+	cmp cl, 9
+	jae .continue_day
+	
+	mov al, '0'
+	call os_print_char
+	
+.continue_day:
+	mov eax, 0
+	mov al, dl
+	call os_bcd_to_int
+	call os_int_to_string
+	mov si, ax
+	call os_print_string
+	
+	mov al, '/'
+	call os_print_char
+	
+.continue_yr:
+	;calculate year
+	mov al, ch
+	call os_bcd_to_int
+	call os_int_to_string
+	mov si, ax
+	call os_print_string
+	mov al, cl
+	call os_bcd_to_int
+	call os_int_to_string
+	mov si, ax
+	call os_print_string
+	
+	call os_print_new_line
+	
+	ret
+	
+.date db "Date (M:D:Y): ", 0
+.year dw 0
+
+;==================
+;os_bcd_to_int
+;Prints the current time.
+;IN: AL: BCD number
+;OUT: AL: integer number
+;==================
+os_bcd_to_int:
+	pusha
+	mov bl, al
+	and ax, 0Fh
+	mov cx, ax
+	shr bl, 4
+	mov al, 10
+	mul bl
+	add ax, cx
+	mov [.tmp], ax
+	popa
+	mov ax, word [.tmp]
+	ret
+	
+.tmp dw 0

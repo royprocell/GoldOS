@@ -731,23 +731,6 @@ fat_file_write:
 	clc
 	ret
 	
-	;make sure file doesn't exist (done!)
-	;create new file (done!)
-	;find file size in clusters (done!)
-	;find all free clusters needed
-	;write loop that writes to the fat table and writes a sector until it runs out of sectors
-	;finish
-	
-	;make sure file doesn't exist (done!)
-	;find all free clusters (done! UT)
-	;find file size (sent by user program)
-	;calculate sectors needed (done! UT)
-
-	;create a loop to first write a cluster to the fat table, and second write a sector
-	;continue loop until it runs out of sectors to write
-	;return
-	;test
-	
 .error:
 	popa
 	stc

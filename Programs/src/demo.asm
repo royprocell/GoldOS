@@ -3,14 +3,14 @@
 ;GoldOS demo programs
 
 ;Features:
-;moving_pixel
+;moving_pixel (done!)
 ;infinite_boxes
-;regular_radar
-;colorful_radar
+;regular_radar (done!)
+;colorful_radar (done!)
 ;waves
-;colorful_screensaver
+;colorful_screensaver (done!)
 ;moving_logo
-;bouncy
+;bouncy (done!)
 
 org 40960
 
@@ -44,6 +44,11 @@ main:
 	je bouncy
 	
 moving_pixel:
+	mov di, 1
+	int 0F3h
+	cmp ah, 27
+	je main
+
 	mov di, 0
 	mov al, 13h
 	int 0F1h
@@ -93,12 +98,230 @@ moving_pixel:
 infinite_boxes:
 
 regular_radar:
+	mov di, 0
+	mov al, 13h
+	int 0F1h
 
+	mov ax, 160
+	mov bx, 100
+	mov si, 0
+	mov dx, 0
+	mov cl, 43
+
+	mov word [.bx], bx
+	
+.inc_y_loop:
+	mov di, 2
+	mov bl, 0
+	int 0F2h
+	mov bx, word [.bx]
+	cmp dx, 200
+	je .inc_x_loop
+	call .save_line_data
+	mov di, 3
+	int 0F2h
+	mov di, 5
+	;wait 50k microseconds
+	mov cx, 0x0000
+	mov dx, 50000
+	int 0F8h
+	call .load_line_data
+	inc dx
+	jmp .inc_y_loop
+
+.inc_x_loop:
+	mov di, 2
+	mov bl, 0
+	int 0F2h
+	mov bx, word [.bx]
+	cmp si, 320
+	je .dec_y_loop
+	call .save_line_data
+	mov di, 3
+	int 0F2h
+	mov di, 5
+	;wait 50k microseconds
+	mov cx, 0x0000
+	mov dx, 50000
+	int 0F8h
+	call .load_line_data
+	inc si
+	jmp .inc_x_loop
+
+.dec_y_loop:
+	mov di, 2
+	mov bl, 0
+	int 0F2h
+	mov bx, word [.bx]
+	cmp dx, -1
+	je .dec_x_loop
+	call .save_line_data
+	mov di, 3
+	int 0F2h
+	mov di, 5
+	;wait 50k microseconds
+	mov cx, 0x0000
+	mov dx, 50000
+	int 0F8h
+	call .load_line_data
+	dec dx
+	jmp .dec_y_loop
+
+.dec_x_loop:
+	mov di, 2
+	mov bl, 0
+	int 0F2h
+	mov bx, word [.bx]
+	cmp si, -1
+	je .inc_y_loop
+	call .save_line_data
+	mov di, 3
+	int 0F2h
+	mov di, 5
+	;wait 50k microseconds
+	mov cx, 0x0000
+	mov dx, 50000
+	int 0F8h
+	call .load_line_data
+	dec si
+	jmp .dec_x_loop
+
+.dx dw 0
+.bx dw 0
+.x1 dw 0
+.y1 dw 0
+.x2 dw 0
+.y2 dw 0
+.cl db 0
+
+.load_line_data:
+	mov ax, word [.x1]
+	mov bx, word [.y1]
+	mov si, word [.x2]
+	mov dx, word [.y2]
+	mov cl, byte [.cl]
+	ret
+
+.save_line_data:
+	mov word [.x1], ax
+	mov word [.y1], bx
+	mov word [.x2], si
+	mov word [.y2], dx
+	mov byte [.cl], cl
+	ret
+	
 colorful_radar:
+	mov di, 0
+	mov al, 13h
+	int 0F1h
 
+	mov ax, 160
+	mov bx, 100
+	mov si, 0
+	mov dx, 0
+	mov cl, 0
+
+	mov word [.bx], bx
+	
+.inc_y_loop:
+	inc cl
+	mov bx, word [.bx]
+	cmp dx, 200
+	je .inc_x_loop
+	call .save_line_data
+	mov di, 3
+	int 0F2h
+	mov di, 5
+	;wait 50k microseconds
+	mov cx, 0x0000
+	mov dx, 50000
+	int 0F8h
+	call .load_line_data
+	inc dx
+	jmp .inc_y_loop
+
+.inc_x_loop:
+	inc cl
+	mov bx, word [.bx]
+	cmp si, 320
+	je .dec_y_loop
+	call .save_line_data
+	mov di, 3
+	int 0F2h
+	mov di, 5
+	;wait 50k microseconds
+	mov cx, 0x0000
+	mov dx, 50000
+	int 0F8h
+	call .load_line_data
+	inc si
+	jmp .inc_x_loop
+
+.dec_y_loop:
+	inc cl
+	mov bx, word [.bx]
+	cmp dx, -1
+	je .dec_x_loop
+	call .save_line_data
+	mov di, 3
+	int 0F2h
+	mov di, 5
+	;wait 50k microseconds
+	mov cx, 0x0000
+	mov dx, 50000
+	int 0F8h
+	call .load_line_data
+	dec dx
+	jmp .dec_y_loop
+
+.dec_x_loop:
+	inc cl
+	mov bx, word [.bx]
+	cmp si, -1
+	je .inc_y_loop
+	call .save_line_data
+	mov di, 3
+	int 0F2h
+	mov di, 5
+	;wait 50k microseconds
+	mov cx, 0x0000
+	mov dx, 50000
+	int 0F8h
+	call .load_line_data
+	dec si
+	jmp .dec_x_loop
+
+.dx dw 0
+.bx dw 0
+.x1 dw 0
+.y1 dw 0
+.x2 dw 0
+.y2 dw 0
+.cl db 0
+
+.load_line_data:
+	mov ax, word [.x1]
+	mov bx, word [.y1]
+	mov si, word [.x2]
+	mov dx, word [.y2]
+	mov cl, byte [.cl]
+	ret
+
+.save_line_data:
+	mov word [.x1], ax
+	mov word [.y1], bx
+	mov word [.x2], si
+	mov word [.y2], dx
+	mov byte [.cl], cl
+	ret
 waves:
 
 colorful_screensaver:
+	mov di, 1
+	int 0F3h
+	cmp ah, 27
+	je main
+
 	mov di, 0
 	mov al, 13h
 	int 0F1h
@@ -149,6 +372,11 @@ bouncy:
 	int 0F5h
 	
 .render:
+	mov di, 1
+	int 0F3h
+	cmp ah, 27
+	je main
+
 	;wait
 	mov di, 5
 	mov cx, 0x0001

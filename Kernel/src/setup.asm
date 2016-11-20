@@ -124,4 +124,3 @@ program_setup:
 	call fat_file_read
 	jc fatal_error
 	
-	

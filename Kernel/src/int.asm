@@ -118,16 +118,16 @@ intF2h_enter:
 	call os_clear_screen_gfx
 	iret
 .03:
-	;call os_draw_line_gfx
+	call os_draw_line_gfx
 	iret
 .04:
-	;call os_draw_triangle_gfx
+	call os_draw_triangle_gfx
 	iret
 .05:
 	call os_draw_box_gfx
 	iret
 .06:
-	;call os_draw_polygon
+	call os_draw_rect_gfx
 	iret
 .07:
 	call os_draw_icon
@@ -174,6 +174,20 @@ intF4h_enter:
 	je .0A
 	cmp di, 0Bh
 	je .0B
+	cmp di, 0Ch
+	je .0C
+	cmp di, 0Dh
+	je .0D
+	cmp di, 0Eh
+	je .0E
+	cmp di, 0Fh
+	je .0F
+	cmp di, 10h
+	je .10
+	cmp di, 11h
+	je .11
+	cmp di, 12h
+	je .12
 	stc
 	iret
 .00:
@@ -204,8 +218,34 @@ intF4h_enter:
 	call os_int_to_hex
 	iret
 .09:
+	call os_string_length
+	iret
 .0A:
+	call os_string_truncate
+	iret
 .0B:
+	call os_string_copy
+	iret
+.0C:
+	call os_string_copy_num
+	iret
+.0D:
+	call os_strcat
+	iret
+.0E:
+	call os_strchr
+	iret
+.0F:
+	call os_strcmp
+	iret
+.10:
+	call os_print_registers
+	iret
+.11:
+	call os_print_time
+	iret
+.12:
+	call os_print_date
 	iret
 
 ;Disk services
@@ -270,7 +310,7 @@ intF5h_enter:
 ;.cx dw 0
 ;.dx dw 0
 ;.06_error:
-	iret
+;	iret
 .07:
 	call fat_file_create
 	iret
