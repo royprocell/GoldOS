@@ -96,6 +96,19 @@ moving_pixel:
 	jmp .draw
 
 infinite_boxes:
+	;just for testing.
+	mov di, 10h
+	int 0F4h
+	
+	mov di, 11h
+	int 0F4h
+	
+	mov di, 12h
+	int 0F4h
+	
+	jmp $
+	
+	;end testing.
 
 regular_radar:
 	mov di, 0

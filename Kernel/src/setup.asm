@@ -6,9 +6,9 @@
 ;Sets up the stack and interrupts for GoldOS.
 stack_setup:
 	cli
-	mov ax, 2000h
+	mov ax, 1000h
 	mov ss, ax
-	mov sp, stack+4096
+	mov sp, 0xE000+4096
 	sti
 	cld
 	mov ax, 2000h
@@ -108,6 +108,14 @@ interrupt_setup:
 	;program int 05h
 	mov si, 20
 	mov ax, int05h_enter
+	mov bx, 2000h
+	mov word [gs:si], ax
+	inc si
+	inc si
+	mov word [gs:si], bx
+	
+	mov si, 112
+	mov ax, int1Ch_enter
 	mov bx, 2000h
 	mov word [gs:si], ax
 	inc si

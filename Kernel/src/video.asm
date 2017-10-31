@@ -183,7 +183,7 @@ os_set_background:
 ;os_print_string
 ;Prints strings. Duh
 ;IN:	SI: string address, DS: string segment
-;OUT:	Nothing
+;OUT:	Nothing. Resets DS to 2000h.
 ;==================
 os_print_string:
 	pusha
@@ -198,6 +198,8 @@ os_print_string:
 	jmp .repeat
 
 .done:
+	mov ax, 2000h
+	mov ds, ax
 	popa
 	ret
 
@@ -248,6 +250,8 @@ os_draw_pixel:
 	add di, ax
 	add di, bx
 	mov byte [es:di], cl
+	mov ax, 2000h
+	mov es, ax
 	popa
 	ret
 	
@@ -269,6 +273,8 @@ os_get_pixel:
 	add di, bx
 	mov cl, byte [es:di]
 	mov byte [.tmp], cl
+	mov ax, 2000h
+	mov es, ax
 	popa
 	mov cl, byte [.tmp]
 	ret
@@ -445,6 +451,8 @@ os_draw_box_gfx:
 	jmp .x_loop
 	
 .done:
+	mov ax, 2000h
+	mov es, ax
 	popa
 	ret
 	
@@ -477,6 +485,8 @@ os_clear_screen_gfx:
 	jmp .loop
 	
 .done:
+	mov ax, 2000h
+	mov ds, ax
 	popa
 	ret
 	
@@ -850,6 +860,8 @@ os_draw_triangle_gfx:
 	mov dx, word [.y1]
 	mov cl, byte [.cl]
 	call os_draw_line_gfx
+	mov ax, 2000h
+	mov es, ax
 	popa
 	ret
 	
@@ -944,6 +956,8 @@ os_draw_rect_gfx:
 	mov dx, word [.y1]
 	mov cl, byte [.cl]
 	call os_draw_line_gfx
+	mov ax, 2000h
+	mov es, ax
 	popa
 	ret
 	

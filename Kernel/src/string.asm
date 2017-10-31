@@ -38,16 +38,16 @@
 ;==================
 os_convert_string_upper:
 	pusha
-	mov es, ax
+	mov fs, ax
 	
 .convert:
-	cmp byte [es:si], 0
+	cmp byte [fs:si], 0
 	je .done
-	cmp byte [es:si], 'a'
+	cmp byte [fs:si], 'a'
 	jb .skip
-	cmp byte [es:si], 'z'
+	cmp byte [fs:si], 'z'
 	ja .skip
-	sub byte [es:si], 20h
+	sub byte [fs:si], 20h
 	inc si
 	jmp .convert
 	
@@ -67,16 +67,16 @@ os_convert_string_upper:
 ;==================
 os_convert_string_lower:
 	pusha
-	mov es, ax
+	mov fs, ax
 	
 .convert:
-	cmp byte [es:si], 0
+	cmp byte [fs:si], 0
 	je .done
-	cmp byte [es:si], 'a'
+	cmp byte [fs:si], 'a'
 	jb .skip
-	cmp byte [es:si], 'z'
+	cmp byte [fs:si], 'z'
 	ja .skip
-	add byte [es:si], 20h
+	add byte [fs:si], 20h
 	inc si
 	jmp .convert
 	
@@ -96,12 +96,12 @@ os_convert_string_lower:
 ;==================
 os_string_length:
 	pusha
-	mov es, ax
+	mov fs, ax
 	mov si, bx
 	mov cx, 0
 	
 .count_loop:
-	cmp byte [es:si], 0
+	cmp byte [fs:si], 0
 	je .done
 	inc si
 	inc cx
@@ -128,7 +128,7 @@ os_string_to_int:
 	mov si, bx
 	dec si
 	mov word [.count], cx
-	mov es, ax
+	mov fs, ax
 	mov dword [.mult], 1
 	mov ebx, 0
 	
@@ -136,7 +136,7 @@ os_string_to_int:
 	mov eax, 0
 	cmp word [.count], 0
 	je .done
-	mov al, byte [es:si]
+	mov al, byte [fs:si]
 	sub al, '0'
 	mul dword [.mult]
 	add ebx, eax
@@ -247,7 +247,7 @@ os_hex_to_int:
 	mov si, bx
 	dec si
 	mov word [.count], cx
-	mov es, ax
+	mov fs, ax
 	mov dword [.mult], 1
 	mov ebx, 0
 	
@@ -255,7 +255,7 @@ os_hex_to_int:
 	mov eax, 0
 	cmp word [.count], 0
 	je .done
-	mov al, byte [es:si]
+	mov al, byte [fs:si]
 	
 	cmp al, 64
 	jg .hex_char
@@ -376,6 +376,7 @@ db 'NUMBERHEX'
 ;OUT: Nothing, Carry Flag set on failure
 ;==================
 os_strcmp:
+	pusha
 	mov word [.name1], bx
 	mov word [.name2], dx
 	mov ds, ax
@@ -404,6 +405,10 @@ os_strcmp:
 .found:
 	clc
 	sub di, 11
+	mov ax, 2000h
+	mov ds, ax
+	mov es, ax
+	popa
 	ret
 	
 .name1 dw 0
@@ -416,19 +421,20 @@ os_strcmp:
 ;OUT: AX: segment of new string, BX: location of new string
 ;==================
 os_strcat:
-	pusha
+	;get length of first string
 	call os_string_length
 	mov word [.string1_length], cx
-	popa
 	
+	;copy first string into .new_string
 	pusha
 	mov cx, 2000h
 	mov dx, .new_string
 	call os_string_copy
 	popa
 	
-	mov si, 256
-	sub si, word [.string1_length]
+	;mov si, 256
+	;sub si, word [.string1_length]
+	;NEEDS WORK
 	
 	mov ax, cx
 	mov bx, dx
@@ -455,8 +461,8 @@ os_strcat:
 os_string_copy:
 	pusha
 	;prepare segments to copy
-	mov ds, ax
-	mov es, cx
+	mov fs, ax
+	mov gs, cx
 	
 	;prepare source and destination indexes
 	mov si, bx
@@ -465,8 +471,8 @@ os_string_copy:
 	mov dl, 0
 	
 .copy_loop:
-	mov dl, byte [ds:si]
-	mov byte [es:di], dl
+	mov dl, byte [fs:si]
+	mov byte [gs:di], dl
 	cmp dl, 0
 	je .done
 	inc si
@@ -494,8 +500,8 @@ os_string_copy:
 os_string_copy_num:
 	pusha
 	;prepare segments to copy
-	mov ds, ax
-	mov es, cx
+	mov fs, ax
+	mov gs, cx
 	
 	;save count
 	mov word [.count], si
@@ -509,8 +515,8 @@ os_string_copy_num:
 	mov cx, word [.count]
 	
 .copy_loop:
-	mov dl, byte [ds:si]
-	mov byte [es:di], dl
+	mov dl, byte [fs:si]
+	mov byte [gs:di], dl
 	cmp dl, 0
 	je .done
 	inc si
@@ -538,11 +544,11 @@ os_string_copy_num:
 ;==================
 os_string_truncate:
 	pusha
-	mov es, ax
+	mov fs, ax
 	mov si, bx
 	add si, cx
 	mov dl, 0
-	mov byte [es:si], dl
+	mov byte [fs:si], dl
 	popa
 	ret
 	
@@ -554,23 +560,26 @@ os_string_truncate:
 ;OUT: AX: segment of first occurrance, BX: location of first occurrance. Carry Flag set if not found.
 ;==================
 os_strchr:
-	mov es, ax
+	push si
+	mov fs, ax
 	mov si, bx
 	
 .search_loop:
-	cmp byte [es:si], 0
+	cmp byte [fs:si], 0
 	je .not_found
-	cmp byte [es:si], cl
+	cmp byte [fs:si], cl
 	je .found
 	inc si
 	jmp .search_loop
 	
 .found:
+	pop si
 	mov bx, si
 	clc
 	ret
 	
 .not_found:
+	pop si
 	stc
 	ret
 	
@@ -872,7 +881,7 @@ os_print_date:
 
 ;==================
 ;os_bcd_to_int
-;Prints the current time.
+;Converts bcd number to int. used for reading date and time from bios.
 ;IN: AL: BCD number
 ;OUT: AL: integer number
 ;==================

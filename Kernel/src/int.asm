@@ -282,7 +282,18 @@ intF5h_enter:
 	call fat_file_list
 	iret
 .03:
+	;check to ensure programs don't attempt to overwrite the kernel
+	cmp cx, 3000h
+	jle .03_check_loc
 	call fat_file_read
+	iret
+.03_check_loc:
+	cmp dx, 0x8000
+	jle .03_error
+	call fat_file_read
+	iret
+.03_error:
+	stc
 	iret
 .04:
 	call fat_file_write
@@ -519,3 +530,6 @@ int05h_enter:
 	
 .filename1 db '2000    DMP', 0
 .filename2 db '3000    DMP', 0
+
+int1Ch_enter:
+	iret

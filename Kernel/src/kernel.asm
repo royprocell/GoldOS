@@ -74,10 +74,5 @@ system_icons:
 	%include 'C:\users\golde\documents\github\GoldOS\kernel\src\icons.asm'
 	;%include 'C:\users\roy\desktop\GoldOS\icons.asm'
 
-db 'STACK'
-stack:
-	times (4096) db 0
-stack_end:
-db 'END STACK'
 db 'FS BUFFER'
 fs_buffer:

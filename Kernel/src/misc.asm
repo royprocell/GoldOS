@@ -126,10 +126,10 @@ os_list_selector:
 	mov dh, 3
 	mov dl, 2
 	mov di, 02h
-	int 0F1h
+	call os_move_cursor
 	mov si, .header
 	mov di, 0
-	int 0F4h
+	call os_print_string
 	
 .pre_loop:
 	pusha

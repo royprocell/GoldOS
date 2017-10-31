@@ -119,6 +119,8 @@ fat_file_exist:
 	add di, ax
 	xchg dx, cx
 	loop .search_loop
+	;bx is still 2000h, reset ds to 2000h for no confusion
+	mov ds, bx
 	stc
 	ret
 	
@@ -255,6 +257,8 @@ fat_file_create:
 	loop .copy_loop
 	
 	call fat_root_write
+	mov ax, 2000h
+	mov ds, ax
 	popa
 	clc
 	ret
@@ -331,12 +335,18 @@ fat_file_convert:
 	
 .done:
 	mov byte [di], 0
+	mov ax, 2000h
+	mov ds, ax
+	mov es, ax
 	popa
 	mov bx, .new_file_name
 	clc
 	ret
 	
 .error:
+	mov ax, 2000h
+	mov ds, ax
+	mov es, ax
 	popa
 	stc
 	ret
@@ -379,11 +389,17 @@ fat_file_rename:
 	
 .done:
 	call fat_root_write
+	mov ax, 2000h
+	mov ds, ax
+	mov es, ax
 	popa
 	clc
 	ret
 	
 .error:
+	mov ax, 2000h
+	mov ds, ax
+	mov es, ax
 	popa
 	stc
 	ret
