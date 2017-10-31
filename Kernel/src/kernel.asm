@@ -20,9 +20,9 @@ main:
 %include 'C:\users\golde\documents\github\GoldOS\kernel\src\string.asm'
 %include 'C:\users\golde\documents\github\GoldOS\kernel\src\disk.asm'
 %include 'C:\users\golde\documents\github\GoldOS\kernel\src\fat16.asm'
-;%include 'C:\users\golde\documents\github\GoldOS\kernel\src\ports.asm'
-;%include 'C:\users\golde\documents\github\GoldOS\kernel\src\sound.asm'
-;%include 'C:\users\golde\documents\github\GoldOS\kernel\src\math.asm'
+%include 'C:\users\golde\documents\github\GoldOS\kernel\src\ports.asm'
+%include 'C:\users\golde\documents\github\GoldOS\kernel\src\sound.asm'
+%include 'C:\users\golde\documents\github\GoldOS\kernel\src\math.asm'
 %include 'C:\users\golde\documents\github\GoldOS\kernel\src\misc.asm'
 %include 'C:\users\golde\documents\github\GoldOS\kernel\src\int.asm'
 

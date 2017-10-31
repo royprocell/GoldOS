@@ -415,6 +415,16 @@ intF8h_enter:
 	je .04
 	cmp di, 05h
 	je .05
+	cmp di, 06h
+	je .06
+	cmp di, 07h
+	je .07
+	cmp di, 08h
+	je .08
+	cmp di, 09h
+	je .09
+	cmp di, 0Ah
+	je .0A
 	stc
 	iret
 .00:
@@ -435,7 +445,19 @@ intF8h_enter:
 	call os_wait
 	iret
 .06:
-	;call os_random
+	call os_random
+	iret
+.07:
+	call os_port_out
+	iret
+.08:
+	call os_port_in
+	iret
+.09:
+	call os_speaker_on
+	iret
+.0A:
+	call os_speaker_off
 	iret
 	
 ;System services

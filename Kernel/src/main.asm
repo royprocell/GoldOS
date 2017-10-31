@@ -573,6 +573,7 @@ fatal_error:
 	mov ds, ax
 	mov si, .message
 	call os_print_string
+	call os_debug
 	jmp end_main
 	
 .message db 'GoldOS encountered an error and cannot run.', 0

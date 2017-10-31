@@ -236,7 +236,6 @@ who_created_goldos:
 	int 0F1h
 	
 	inc dh
-	inc dh
 	mov di, 2
 	int 0F1h
 	
@@ -327,6 +326,7 @@ who_created_goldos:
 	int 0F1h
 	
 	inc dh
+	inc dh
 	mov di, 2
 	int 0F1h
 	
@@ -338,6 +338,13 @@ who_created_goldos:
 	int 0F1h
 	
 	inc dh
+	mov di, 2
+	int 0F1h
+	
+	mov si, msg6E
+	mov di, 0
+	int 0F4h
+	
 	inc dh
 	inc dh
 	mov di, 2
@@ -624,8 +631,13 @@ system_properties:
 	mov ax, 07C0h
 	mov ds, ax
 	mov si, 0x36
-	mov di, 0
+	mov di, 1
+	mov cx, 8
+.fatloop:
+	mov al, byte [ds:si]
 	int 0F4h
+	inc si
+	loop .fatloop
 	
 	mov ax, 2000h
 	mov ds, ax
@@ -735,23 +747,23 @@ msg13 db '-Text Editor: Supports more than 65,000 characters', 0
 msg14 db '-Image Editor: Supports 256x256 images in VGA 256 colors', 0
 msg15 db '-Calculator: Supports all basic math functions', 0
 msg16 db '-Demo Programs: Utilizes kernel graphics primitives to create cool effects', 0
-msg17 db '-Sound Player: Uses PC speaker to play sounds and music', 0
-msg18 db '-Games: Pong, Snake, Pacman, RPG', 0
-msg19 db '-Assembler & Basic Interpreter: Create your own GoldOS programs!', 0
-msg1A db '-Command Line: Perform tasks through a simple & familiar CLI', 0
-msg1B db 'Note: Some features have not been implemented yet:', 0
+msg17 db '', 0
+msg18 db '', 0
+msg19 db '', 0
+msg1A db '', 0
+msg1B db '', 0
 
 msg21 db 'Processor: ', 0
 msg22 db 'Conventional Memory Size: ', 0
 msg23 db 'Total Memory Size (Not Completely Accurate): ', 0
 msg24 db 'Filesystem: ', 0
-msg25 db 'Disk Size: ', 0
+msg25 db 'Volume Size: 2MB (OS)', 0
 
 msg31 db 'GoldOS recognizes the following file types:', 0
 msg32 db '-Executable files: BIN', 0
 msg33 db '-Text files: TXT, ASM, CPP, PY, C', 0
 msg34 db '-Image files: 13H', 0
-msg35 db '-Sound files: None at the moment', 0
+msg35 db '', 0
 
 ;msg11 db 'At the moment, GoldOS is under development.', 0
 ;msg12 db 'This means that not all features have been added yet.', 0
@@ -764,15 +776,16 @@ msg61 db 'GoldOS was created by Roy Procell back in 2013. He was interested in h
 msg62 db 'operating systems worked, and decided to teach himself assembly language.', 0
 msg63 db 'Since then, he has worked on three versions of GoldOS: Versions 1, 2,', 0
 msg64 db 'and 4, with each iteration having cleaner code and better user interfaces.', 0
-msg65 db 'While versions 1 and 2 were never finished, Roy hopes to finish this', 0
-msg66 db 'current version (Version 4) very soon.', 0
+msg65 db 'While Versions 1 and 2 were never finished, Roy finished Version 4', 0
+msg66 db "(the version you're currently using) on October 31st, 2017.", 0
 msg67 db 'GoldOS was inspired by MikeOS, a 16 bit OS project by Mike Saunders.', 0
 msg68 db "GoldOS also inspired one of Roy's friends, Brian Kelley, to create GoldOS", 0
 msg69 db 'Version 3: a 32 bit operating system. Now known as ObsidianOS.', 0
 msg6A db 'Useful operating system development websites:', 0
-msg6B db 'mikeos.sourceforge.net, wiki.osdev.org,', 0
-msg6C db "Ralph Brown's Interrupt List,", 0
-msg6D db 'and last but not least: Google & Wikipedia', 0
+msg6B db "mikeos.sourceforge.net, wiki.osdev.org, Ralph Brown's Interrupt List,", 0
+msg6C db "and last but not least: Google & Wikipedia", 0
+msg6D db 'Please read the GoldOS license under LICENSE.TXT. By downloading,', 0
+msg6E db 'using, or modifying GoldOS, you accept the terms in LICENSE.TXT.', 0
 ;msg31 db 'GoldOS does not yet support error codes.', 0
 ;msg32 db 'However, they may be added at a later date.', 0
 msg41 db "You are probably running GoldOS on an older computer that doesn't", 0

@@ -181,7 +181,7 @@ os_set_background:
 
 ;==================
 ;os_print_string
-;Prints strings. Duh
+;Prints strings
 ;IN:	SI: string address, DS: string segment
 ;OUT:	Nothing. Resets DS to 2000h.
 ;==================
@@ -205,7 +205,7 @@ os_print_string:
 
 ;==================
 ;os_print_char
-;Prints a single char. REALLY!?
+;Prints a single char
 ;IN:	AL: desired char
 ;OUT:	Nothing
 ;==================

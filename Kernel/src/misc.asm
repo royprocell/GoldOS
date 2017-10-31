@@ -805,3 +805,57 @@ os_print_total_memory:
 	ret
 	
 .conv_mem dw 0
+
+;==================
+;os_random
+;Uses xor shift to generate a random number.
+;IN: AX: high - should be 1 or above!, BX: low
+;OUT: AX: random number. Carry flag set if 0 is the high value and random number not returned.
+;==================
+os_random:
+	pusha
+	mov ecx, 0
+	mov edx, 0
+	inc ax
+	sub ax, bx
+	push ax
+	;use time to grab random seed. use EDX, discard CX
+	mov ah, 0
+	int 1Ah
+	pop ax
+	mov ecx, edx
+	shl ecx, 13
+	xor edx, ecx
+	mov ecx, edx
+	shr ecx, 17
+	xor edx, ecx
+	mov ecx, edx
+	shl ecx, 5
+	xor edx, ecx
+	mov cx, ax
+	mov ax, dx
+	mov dx, 0
+	div cx
+	mov word [.tmp], dx
+	popa
+	mov eax, 0
+	mov ax, word [.tmp]
+	add ax, bx
+	ret
+	
+.tmp dw 0
+	
+;==================
+;os_debug
+;Prints all regusters and the date and time.
+;IN: Nothing
+;OUT: Nothing
+;==================
+os_debug:
+	mov di, 10h
+	int 0F4h
+	mov di, 11h
+	int 0F4h
+	mov di, 12h
+	int 0F4h
+	jmp $

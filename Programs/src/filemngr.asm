@@ -402,6 +402,14 @@ delete:
 	jmp main
 	
 rename:
+	mov ax, 2000h
+	mov bx, filename
+	mov di, 9
+	int 0F5h
+	
+	cmp al, 0x04
+	je error_sys_file
+
 	mov di, 2
 	mov ax, welcome_input_msg
 	mov bl, 8

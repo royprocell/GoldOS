@@ -9,7 +9,7 @@
 ;fat_file_list (done! untested!)
 ;fat_file_convert (done!)
 ;fat_file_read (done!)
-;fat_file_write
+;fat_file_write (done!)
 ;fat_file_delete (done! untested!)
 ;fat_file_rename (done!)
 ;fat_file_create (done!)
@@ -369,6 +369,10 @@ fat_file_rename:
 	mov bx, word [.new_offset]
 	call fat_file_exist
 	jnc .error
+	mov ax, 2000h
+	mov es, ax
+	cmp byte [es:di+0xB], 04h
+	je .error
 	mov ax, word [.org_segment]
 	mov bx, word [.org_offset]
 	call fat_file_exist

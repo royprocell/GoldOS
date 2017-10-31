@@ -4,12 +4,10 @@
 
 ;Features:
 ;moving_pixel (done!)
-;infinite_boxes
+;infinite_boxes (done!)
 ;regular_radar (done!)
 ;colorful_radar (done!)
-;waves
 ;colorful_screensaver (done!)
-;moving_logo
 ;bouncy (done!)
 
 org 40960
@@ -35,12 +33,8 @@ main:
 	cmp al, 4
 	je colorful_radar
 	cmp al, 5
-	je waves
-	cmp al, 6
 	je colorful_screensaver
-	cmp al, 7
-	je moving_logo
-	cmp al, 8
+	cmp al, 6
 	je bouncy
 	
 moving_pixel:
@@ -96,20 +90,72 @@ moving_pixel:
 	jmp .draw
 
 infinite_boxes:
-	;just for testing.
-	mov di, 10h
-	int 0F4h
-	
-	mov di, 11h
-	int 0F4h
-	
-	mov di, 12h
-	int 0F4h
-	
-	jmp $
-	
-	;end testing.
+	mov al, 13h
+	mov di, 0
+	int 0F1h
 
+.loop:
+	mov di, 6
+	mov ax, 255
+	mov bx, 0
+	int 0F8h
+	mov byte [.color], al
+	
+	mov di, 6
+	mov ax, 319
+	mov bx, 0
+	int 0F8h
+	mov word [.width], ax
+	
+	mov di, 6
+	mov ax, 319
+	mov bx, 0
+	int 0F8h
+	mov word [.height], ax
+	
+	mov di, 6
+	mov ax, 319
+	mov bx, 0
+	int 0F8h
+	mov word [.draw_loc_x], ax
+	
+	mov di, 6
+	mov ax, 199
+	mov bx, 0
+	int 0F8h
+	mov word [.draw_loc_y], ax
+	
+	mov di, 5
+	mov bx, word [.draw_loc_x]
+	mov cx, word [.draw_loc_y]
+	mov dx, word [.width]
+	mov si, word [.height]
+	mov al, byte [.color]
+	int 0F2h
+	
+	mov dh, 0
+	mov dl, 0
+	mov di, 2
+	int 0F1h
+	
+	mov si, .msg
+	mov di, 0
+	int 0F4h
+	
+	mov cx, 0
+	mov dx, 0xFFFF
+	mov di, 5
+	int 0F8h
+	
+	jmp .loop
+
+.msg db 'Infinite boxes!', 0
+.color db 0
+.width dw 0
+.height dw 0
+.draw_loc_x dw 0
+.draw_loc_y dw 0
+	
 regular_radar:
 	mov di, 0
 	mov al, 13h
@@ -327,7 +373,6 @@ colorful_radar:
 	mov word [.y2], dx
 	mov byte [.cl], cl
 	ret
-waves:
 
 colorful_screensaver:
 	mov di, 1
@@ -368,8 +413,6 @@ colorful_screensaver:
 	int 0F8h
 	popa
 	jmp .loop_backward
-
-moving_logo:
 
 bouncy:
 	;set video mode
@@ -460,6 +503,6 @@ exit:
 vars:
 welcome_msg db 'GoldOS Demo Programs | WARNING: WILL LOCK UP COMPUTER', 0
 instructions_msg db 'Choose a demo program to see some cool graphical effects!', 0
-list db 'Moving Pixel,Infinite Boxes,Radar,Colorful Radar,Waves,Screensaver,Moving Logo,Bouncy', 0
+list db 'Moving Pixel,Infinite Boxes,Radar,Colorful Radar,Screensaver,Bouncy', 0
 file_logo db 'LOGO    13H', 0
 file_ball db 'BALL    13H', 0
